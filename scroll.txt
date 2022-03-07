@@ -1,0 +1,29 @@
+Sometimes 'click to scroll' functionality causes our creative to cover content. Usually, e.preventDefault(), e.stopPropagation(), jQuery('html, body').stop(true, true) or a combination of the three will stop the native scroll behavior. Instead, we'll go instantly to the intended scroll point, then instantly to our provided offset. 
+
+Useful links:
+Stop
+Animate
+e.preventDefault
+e.stopPropagation
+
+This function will often require some adjustment and finessing. Use your best judgement if it seems like there is too much "heavy lifting" to make this work.
+        bouncex.on(jQuery("TARGET_ELEMENT(S)"), 'click.bx-' + ca_id, function (e) {
+            //e.preventDefault();
+            //e.stopPropagation();
+            var scrollPoint = jQuery(this).attr("href");
+            jQuery("body,html").stop(true, true).animate({
+                scrollTop: scrollPoint.offset().top - OFFSET_HEIGHT_HERE //$creative.height() or int value
+            }, 0);
+        });
+
+ If the scrollpoint is not controlled by an href, declare the target selector as a string or use an integer window scrollpoint to control the animation.
+
+<Snippet here for if the scrollpoint is not controlled by an href>
+
+bouncex.on(jQuery('#TARGET_ELEM'), 'click.bx-'+campaign_id, function(e) {
+    e.preventDefault();
+    var scrollPoint = jQuery('#SCROLL_TARGET');
+    jQuery("body,html").stop(true, true).animate({
+        scrollTop: scrollPoint.scrollTop() - $creative.height()
+    }, 0)};
+});
