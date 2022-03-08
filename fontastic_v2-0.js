@@ -31,6 +31,7 @@ javascript: (() => {
     if (!allFonts) {
       // throw Error("No font face detected");
       console.log("No font face detected...");
+      return result;
     } else {
       var fontArray = allFonts.trim().split("@font-face"),
         filteredArray = fontArray.filter(
@@ -63,16 +64,18 @@ javascript: (() => {
   }
 
   function findLatinTags(fonts = "") {
+    if (!fonts) {
+      return;
+    }
     // console.log("fonts in findLatinTags(): ", fonts);
     /* Check for Latin fonts */
     var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"]+})/gi,
       extractedContent = fonts.match(languagesRegex);
-    console.log(
-      "extractedContent in fintLatinTags(): ",
-      fonts.match(languagesRegex)
-    );
+    // console.log(
+    //   "extractedContent in fintLatinTags(): ",
+    //   fonts.match(languagesRegex)
+    // );
     var allFonts = "";
-    /* EXTRACTEDCONTENT IS NOT ITERABLE - WHAT ARE YOU DOING HERE? it was because double quotes and underscores were left out of the languagesRegex. Added! */
     for (var result of extractedContent) {
       if (result.includes("/*")) {
         if (result.includes("latin") && !result.includes("-ext")) {
@@ -309,6 +312,12 @@ javascript: (() => {
     lastStep = fontList.length;
     stylesheetIterationActive = false;
     $(".bare-btn.bare-btn__text").text(`New Font`);
+    // if (jQuery(".font-input.ember-text-area:not('.input-wrap_input')").length) {
+    //   jQuery(".font-input.ember-text-area:not('.input-wrap_input')").val("");
+    //   jQuery(".font-input.ember-text-area:not('.input-wrap_input')").trigger(
+    //     "input"
+    //   );
+    // }
   }
 
   function showFinale() {
@@ -348,6 +357,7 @@ javascript: (() => {
     stackError = document.createElement("p"),
     sourceError = document.createElement("p"),
     stylesheetHelperBtn = document.createElement("button"),
+    stylesheetAbortBtn = document.createElement("button"),
     stylesheetShroud = document.createElement("div"),
     stylesheetDiv = document.createElement("div"),
     stylesheetTextElement = document.createElement("textarea"),
@@ -396,6 +406,20 @@ javascript: (() => {
   stylesheetHelperBtn.style.margin = "10px auto";
   stylesheetHelperBtn.style.padding = "0 20px";
   stylesheetHelperBtn.style.border = "none";
+
+  stylesheetAbortBtn.className = "stylesheet_abort_button";
+  stylesheetAbortBtn.innerText = "Clear stylesheet";
+  stylesheetAbortBtn.style.color = white;
+  stylesheetAbortBtn.style.fontWeight = "bold";
+  stylesheetAbortBtn.style.backgroundColor = wkndRed;
+  stylesheetAbortBtn.style.height = "40px";
+  stylesheetAbortBtn.style.margin = "10px auto";
+  stylesheetAbortBtn.style.padding = "0 20px";
+  stylesheetAbortBtn.style.border = "none";
+  stylesheetAbortBtn.onclick = function () {
+    stopIteration();
+    jQuery(".bx-modal_close").click();
+  };
 
   stylesheetShroud.className = "fontastic_shroud";
   stylesheetShroud.style.position = "absolute";
@@ -491,8 +515,7 @@ javascript: (() => {
       $fontModalContainer = jQuery(".bx-modal_container"),
       $fontFaceTextField = $fontModal.find(
         ".font-input.ember-text-area:not('.input-wrap_input')"
-      ),
-      currentStack="";
+      );
 
     if ($fontModalContainer.length) {
       $fontModalContainer.css("max-height", "98%");
@@ -502,7 +525,9 @@ javascript: (() => {
         $fontModalContainer.prepend(counterDiv);
       }
       if (stylesheetIterationActive) {
-        counterText.innerText = `Stylesheet active. Font ${currentStep} of ${lastStep}`;
+        counterText.innerText = `Stylesheet active. Font ${
+          currentStep + 1
+        } of ${lastStep}`;
         counterText.style.color = wkndGreen;
         $fontFaceTextField.val(fontList[currentStep].declaration);
         $fontFaceTextField.trigger("input");
@@ -513,35 +538,45 @@ javascript: (() => {
     }
 
     if (!jQuery(".stylesheet_helper_button").length) {
-      $fontModalContainer.children("[id*='ember']").append("<br>");
-      $fontModalContainer.children("[id*='ember']").append(stylesheetHelperBtn);
+      if (stylesheetIterationActive) {
+        $fontModalContainer.children("[id*='ember']").append("<br>");
+        $fontModalContainer
+          .children("[id*='ember']")
+          .append(stylesheetAbortBtn);
+      } else {
+        $fontModalContainer.children("[id*='ember']").append("<br>");
+        $fontModalContainer
+          .children("[id*='ember']")
+          .append(stylesheetHelperBtn);
+      }
     }
 
     /* On font submit */
     jQuery(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
       // console.log("Next font");
-      if (currentStep < lastStep) {
-        console.log(
-          "Moving to the next step in click listener for '.create-btn.flat-btn.flat-btn__primary' in fontastic()"
-        );
+      if (currentStep + 1 < lastStep) {
+        // console.log(
+        //   "Moving to the next step in click listener for '.create-btn.flat-btn.flat-btn__primary' in fontastic()"
+        // );
         for (var font of fontList) {
           var currentFont = fontList[currentStep];
           if (font.family === currentFont.family && !font.stack) {
-            font.stack = currentFont.stack
+            font.stack = currentFont.stack;
           }
         }
-        console.log("fontList line 531:", fontList);
+        // console.log("fontList line 531:", fontList);
         stylesheetIterationActive = true;
         currentStep++;
         //   MAKE THE NEW FONT BUTTON SAY SOMETHING ELSE LIKE "NEXT FONT (2 OF 9)", AND ON CLICK, ACTIVATE THE NEXT FONT (TIMEOUT MAY BE UNNECESSARY THIS WAY)
         $(".bare-btn.bare-btn__text").text(
-          `Next font (${currentStep} of ${lastStep})`
+          `Next font (${currentStep + 1} of ${lastStep})`
         );
       } else {
         console.log(
           "Stopping Iteration in click listener for '.create-btn.flat-btn.flat-btn__primary' at the end of fontastic()..."
         );
         stopIteration();
+        // setTimeout(showFinale, 700);
         showFinale();
       }
     });
@@ -550,31 +585,40 @@ javascript: (() => {
 
     stylesheetSubmitBtn.onclick = function () {
       stylesheetIterationActive = true;
-      currentStep++;
       stylesheetInput = stylesheetTextElement.value;
       stylesheetParsedFonts = getFonts(stylesheetInput);
       fontList = stylesheetParsedFonts;
       lastStep = fontList.length;
       console.log("I have saved your items, friend: ", fontList);
-      counterText.innerText = `Stylesheet iteration active: ${currentStep} of ${lastStep}.`;
+      counterText.innerText = `Stylesheet iteration active: ${
+        currentStep + 1
+      } of ${lastStep}.`;
       counterText.style.color = wkndGreen;
       stylesheetTextElement.value = "";
       jQuery(".close_stylesheet").click();
-      $fontFaceTextField.val(fontList[0].declaration);
+      $fontFaceTextField.val(fontList[currentStep].declaration);
       $fontFaceTextField.trigger("input");
+      if (jQuery(".stylesheet_helper_button").length) {
+        jQuery(".stylesheet_helper_button").remove();
+        $fontModalContainer
+          .children("[id*='ember']")
+          .append(stylesheetAbortBtn);
+      }
     };
 
     stylesheetCloseBtn.onclick = function () {
       jQuery(".fontastic_shroud").remove();
       jQuery(".stylesheet_helper_container").remove();
-      stylesheetIterationActive = false;
     };
 
     $fontFaceTextField.on("input", function () {
+      if (!$(this).val()) {
+        return;
+      }
       var font = getFonts($(this).val())[0],
         prefix = font.prefix,
         urlRegex = /http[s]*:\/{2}[\w\d]+[.\w\d]+[.\w\d]*[\/\w\d.]*/gi;
-      
+
       if (!font.declaredWeight || !font.declaredStyle) {
         $(this).val(font.declaration);
       }
@@ -623,7 +667,6 @@ javascript: (() => {
                 fontList[currentStep].stack = e.target.value;
                 font.stack = e.target.value;
                 currentStack = font.stack;
-                
               });
           } else if ($(this).children("label").text() == "Reference URL") {
             var sourceInput = $(this).children("input");
@@ -667,7 +710,7 @@ javascript: (() => {
     });
 
     $fontFaceTextField.trigger("input");
-    
+
     /* LOGIC FOR STYLESHEET ITERATION */
     stylesheetHelperBtn.onclick = function () {
       if (!jQuery(".stylesheet_helper_container").length) {
@@ -692,150 +735,11 @@ javascript: (() => {
 
   fontastic();
   jQuery(".bare-btn.bare-btn__text").on("click", function () {
-    console.log("Next font clicked. State:");
-    console.log("Iteration active?", stylesheetIterationActive);
-    console.log("fontList:", fontList);
-    console.log("currentStep:", currentStep);
-    console.log("lastStep:", lastStep);
+    // console.log("Next font clicked. State:");
+    // console.log("Iteration active?", stylesheetIterationActive);
+    // console.log("fontList:", fontList);
+    // console.log("currentStep:", currentStep);
+    // console.log("lastStep:", lastStep);
     setTimeout(fontastic, 100);
   });
 })();
-
-var withSomeLanguageTags = `
-    /* latin-ext */
-    @font-face {
-    font-family: 'DM Serif Display';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/dmserifdisplay/v5/-nFnOHM81r4j6k0gjAW3mujVU2B2G_5x0vrx52jJ3Q.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-    }
-    /* latin */
-    @font-face {
-    font-family: 'DM Serif Display';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/dmserifdisplay/v5/-nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0vrx52g.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-    }
-    "@font-face  {
-      font-family: 'DM Serif Display';
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-      src: url(https://fonts.gstatic.com/s/dmserifdisplay/v5/-nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0vrx52g.woff2) format('woff2');
-      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
-      /* latin */
-      "
-    /* devanagari */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 300;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLDz8Z11lFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FB;
-    }
-    /* latin-ext */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 300;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLDz8Z1JlFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-    }
-    /* latin */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 300;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLDz8Z1xlFd2JQEk.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-    }
-    /* devanagari */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2) format('woff2');
-    unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FB;
-    }
-    /* latin-ext */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-    }
-    /* latin */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-    }
-    
-    /* devanagari */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FB;
-    }
-    /* latin-ext */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-    }
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-    }
-    /* devanagari */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9, U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839, U+A8E0-A8FB;
-    }
-    /* latin-ext */
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2) format('woff2');
-    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-    }
-    @font-face {
-    font-family: 'Poppins';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url(https://fonts.gstatic.com/s/poppins/v15/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2) format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-    }
-
-`;
