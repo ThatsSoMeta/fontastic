@@ -1,8 +1,8 @@
 javascript: (() => {
-  var currentStep = 0,
-    endingPoint,
+  var fontList = [],
+    currentStep = 0,
+    lastStep = fontList.length,
     stylesheetIterationActive = false,
-    fontList,
     wkndDarkBlue = "#303D78",
     wkndLightBlue = "#3D54CC",
     wkndGreen = "#24B79D",
@@ -63,16 +63,16 @@ javascript: (() => {
   }
 
   function findLatinTags(fonts = "") {
-    console.log("fonts in findLatinTags(): ", fonts);
+    // console.log("fonts in findLatinTags(): ", fonts);
     /* Check for Latin fonts */
-    var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%]+})/gi,
+    var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"]+})/gi,
       extractedContent = fonts.match(languagesRegex);
     console.log(
       "extractedContent in fintLatinTags(): ",
       fonts.match(languagesRegex)
     );
     var allFonts = "";
-    // console.log("extractedContent in findLatinTags():", extractedContent);
+    /* EXTRACTEDCONTENT IS NOT ITERABLE - WHAT ARE YOU DOING HERE? it was because double quotes and underscores were left out of the languagesRegex. Added! */
     for (var result of extractedContent) {
       if (result.includes("/*")) {
         if (result.includes("latin") && !result.includes("-ext")) {
@@ -82,9 +82,9 @@ javascript: (() => {
         allFonts += result;
       }
     }
-    var removeTagRegex = /@font-face\s*{[\w\s\d\.\*\/,:;'"\-\+()\[\]]+}/gi;
-    // console.log("allFonts in findLatinTags(): ", allFonts);
-    return allFonts;
+    var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"]+})/gi;
+    var allFontsTagRemoved = allFonts.match(removeTagRegex);
+    return allFontsTagRemoved.join();
   }
 
   function extractFont(fontFace = "") {
@@ -177,18 +177,18 @@ javascript: (() => {
     return result;
   }
 
-  function extractSourceURL(source = "") {
+  function extractSourceURL(src = "") {
     var format;
 
-    source.includes(".woff2")
+    src.includes(".woff2")
       ? (format = "woff2")
-      : source.includes(".woff")
+      : src.includes(".woff")
       ? (format = "woff")
-      : source.includes(".ttf")
+      : src.includes(".ttf")
       ? (format = "ttf")
-      : source.includes(".otf")
+      : src.includes(".otf")
       ? (format = "otf")
-      : source.includes(".eot")
+      : src.includes(".eot")
       ? (format = "eot")
       : (format = "unknown");
 
@@ -197,7 +197,7 @@ javascript: (() => {
         "g"
       ),
       prefix = `data:application/x-font-${format};base64,`,
-      resultUrl = source.match(searchString);
+      resultUrl = src.match(searchString);
     return {
       url: resultUrl[0],
       prefix: prefix,
@@ -303,13 +303,21 @@ javascript: (() => {
     return font;
   }
 
+  function stopIteration() {
+    currentStep = 0;
+    fontList = [];
+    lastStep = fontList.length;
+    stylesheetIterationActive = false;
+    $(".bare-btn.bare-btn__text").text(`New Font`);
+  }
+
   function showFinale() {
     if (!jQuery(".fontastic_finale").length) {
       var finaleContainer = document.createElement("div"),
         finaleImg = document.createElement("img"),
         finaleShroud = document.createElement("div");
 
-      finaleImg.src = "https://i.ibb.co/G7BJ423/we-did-it.png";
+      finaleImg.src = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
       finaleImg.style.cursor = "pointer";
       finaleImg.onclick = function () {
         jQuery(".fontastic_finale").remove();
@@ -354,8 +362,12 @@ javascript: (() => {
     counterText = document.createElement("h5");
 
   counterDiv.className = "fontastic_counter_container";
+  counterText.className = "fontastic_counter_text";
   counterText.style.marginTop = "-25px";
   counterText.style.marginBottom = "10px";
+  counterText.style.fontSize = "16px";
+  counterText.style.fontWeight = "bold";
+  counterText.style.color = wkndGreen;
 
   weightError.className = "weight_error_text";
   weightError.style.color = wkndLightBlue;
@@ -449,8 +461,8 @@ javascript: (() => {
   stylesheetCloseBtn.style.outlineColor = wkndRed;
   stylesheetCloseBtn.style.outlineOffset = "2px";
 
-  runningNoticeDiv.style.backgroundColor = wkndYellow;
   runningNoticeDiv.className = "fontastic_logo_container";
+  runningNoticeDiv.style.backgroundColor = wkndYellow;
   runningNoticeDiv.style.position = "absolute";
   runningNoticeDiv.style.zIndex = "999999999";
   runningNoticeDiv.style.right = "0";
@@ -465,7 +477,7 @@ javascript: (() => {
 
   logoImg.src = logoBlueURL;
   logoImg.className = "fontastic_logo";
-  logoImg.style.width = "70px";
+  logoImg.style.width = "60px";
   logoImg.style.paddingBottom = "4px";
   logoImg.style.paddingRight = "3px";
   logoImg.style.paddingTop = "2px";
@@ -473,61 +485,81 @@ javascript: (() => {
   noticeSpan.innerText = "is active. To disable, please refresh this page.";
   noticeSpan.style.fontWeight = "600";
   noticeSpan.style.fontSize = "10px";
-  
+
   function fontastic() {
     var $fontModal = jQuery(".bx-modal_container .mint-theme.ember-view"),
-    $fontModalContainer = jQuery(".bx-modal_container"),
-    $fontFaceTextField = $fontModal.find(
-      ".font-input.ember-text-area:not('.input-wrap_input')"
-      );
+      $fontModalContainer = jQuery(".bx-modal_container"),
+      $fontFaceTextField = $fontModal.find(
+        ".font-input.ember-text-area:not('.input-wrap_input')"
+      ),
+      currentStack="";
 
-      if ($fontModalContainer.length) {
-        $fontModalContainer.css("max-height", "98%");
-        $fontModalContainer.css("padding-bottom", "20px");
-        if (!jQuery(".fontastic_counter_container").length) {
-          counterDiv.append(counterText);
-          $fontModalContainer.prepend(counterDiv);
-        }
-        if (stylesheetIterationActive) {
-          counterText.innerText = `Stylesheet active. Font ${currentStep} of ${endingPoint}`;
-        } else {
-          counterText.innerText = "Stylesheet not active";
-        }
+    if ($fontModalContainer.length) {
+      $fontModalContainer.css("max-height", "98%");
+      $fontModalContainer.css("padding-bottom", "20px");
+      if (!jQuery(".fontastic_counter_container").length) {
+        counterDiv.append(counterText);
+        $fontModalContainer.prepend(counterDiv);
       }
-
-      if (!jQuery(".stylesheet_helper_button").length) {
-        $fontModalContainer.children("[id*='ember']").append("<br>");
-        $fontModalContainer
-        .children("[id*='ember']")
-        .append(stylesheetHelperBtn);
+      if (stylesheetIterationActive) {
+        counterText.innerText = `Stylesheet active. Font ${currentStep} of ${lastStep}`;
+        counterText.style.color = wkndGreen;
+        $fontFaceTextField.val(fontList[currentStep].declaration);
+        $fontFaceTextField.trigger("input");
+      } else {
+        counterText.innerText = "Stylesheet not active";
+        counterText.style.color = wkndDarkBlue;
       }
+    }
 
-      jQuery(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
-        console.log("Next font");
-        if (currentStep < endingPoint) {
-          currentStep++;
-          setTimeout(function () {
-            jQuery("button:contains('New Font')").click();
-            fontastic();
-          }, 1000);
-        } else {
-          currentStep = 0;
-          stylesheetIterationActive = false;
-          showFinale();
+    if (!jQuery(".stylesheet_helper_button").length) {
+      $fontModalContainer.children("[id*='ember']").append("<br>");
+      $fontModalContainer.children("[id*='ember']").append(stylesheetHelperBtn);
+    }
+
+    /* On font submit */
+    jQuery(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
+      // console.log("Next font");
+      if (currentStep < lastStep) {
+        console.log(
+          "Moving to the next step in click listener for '.create-btn.flat-btn.flat-btn__primary' in fontastic()"
+        );
+        for (var font of fontList) {
+          var currentFont = fontList[currentStep];
+          if (font.family === currentFont.family && !font.stack) {
+            font.stack = currentFont.stack
+          }
         }
-      });
+        console.log("fontList line 531:", fontList);
+        stylesheetIterationActive = true;
+        currentStep++;
+        //   MAKE THE NEW FONT BUTTON SAY SOMETHING ELSE LIKE "NEXT FONT (2 OF 9)", AND ON CLICK, ACTIVATE THE NEXT FONT (TIMEOUT MAY BE UNNECESSARY THIS WAY)
+        $(".bare-btn.bare-btn__text").text(
+          `Next font (${currentStep} of ${lastStep})`
+        );
+      } else {
+        console.log(
+          "Stopping Iteration in click listener for '.create-btn.flat-btn.flat-btn__primary' at the end of fontastic()..."
+        );
+        stopIteration();
+        showFinale();
+      }
+    });
 
     var stylesheetInput;
 
     stylesheetSubmitBtn.onclick = function () {
+      stylesheetIterationActive = true;
+      currentStep++;
       stylesheetInput = stylesheetTextElement.value;
       stylesheetParsedFonts = getFonts(stylesheetInput);
-      console.log("I have saved your items, friend: ", stylesheetParsedFonts);
-      stylesheetTextElement.value = "";
-      stylesheetIterationActive = true;
-      endingPoint = stylesheetParsedFonts.length - 1;
-      jQuery(".close_stylesheet").click();
       fontList = stylesheetParsedFonts;
+      lastStep = fontList.length;
+      console.log("I have saved your items, friend: ", fontList);
+      counterText.innerText = `Stylesheet iteration active: ${currentStep} of ${lastStep}.`;
+      counterText.style.color = wkndGreen;
+      stylesheetTextElement.value = "";
+      jQuery(".close_stylesheet").click();
       $fontFaceTextField.val(fontList[0].declaration);
       $fontFaceTextField.trigger("input");
     };
@@ -542,6 +574,7 @@ javascript: (() => {
       var font = getFonts($(this).val())[0],
         prefix = font.prefix,
         urlRegex = /http[s]*:\/{2}[\w\d]+[.\w\d]+[.\w\d]*[\/\w\d.]*/gi;
+      
       if (!font.declaredWeight || !font.declaredStyle) {
         $(this).val(font.declaration);
       }
@@ -559,7 +592,7 @@ javascript: (() => {
               if (font.declaredWeight === undefined) {
                 weightError.innerHTML = `Please add a font-weight to the declaration above. <b>Suggestion: ${font.weight}</b>.`;
               } else if (font.declaredWeight === "normal") {
-                weightError.innerHTML = `This font weight appears to be <b>${font.weight}</b>. If so, please manually update the font-weight in the declaration above.`;
+                weightError.innerHTML = `This font weight appears to be <b>${font.weight}</b>. If so, please update the font-weight in the declaration above.`;
               }
             }
           } else if ($(this).children("label").text() == "Stack") {
@@ -567,8 +600,8 @@ javascript: (() => {
               $(this).append(stackError);
             }
             stackError.innerText = "";
-            if (font.stack) {
-              $(this).children("input").val(font.stack);
+            if (fontList[currentStep].stack) {
+              $(this).children("input").val(fontList[currentStep].stack);
             } else {
               if (font.family.includes(" ")) {
                 $(this).children("input").val(`"${font.family}",`);
@@ -581,12 +614,16 @@ javascript: (() => {
             }
             $(this)
               .children("input")
-              .on("input", function () {
+              .on("input", function (e) {
                 stackError.innerText = "";
-                if ($(this).val().endsWith(",")) {
+                console.log("e.target.value in stack input: ", e.target.value);
+                if (!$(this).val().endsWith("serif")) {
                   stackError.innerText = "Please use a valid font stack.";
                 }
-                font.stack = $(this).val();
+                fontList[currentStep].stack = e.target.value;
+                font.stack = e.target.value;
+                currentStack = font.stack;
+                
               });
           } else if ($(this).children("label").text() == "Reference URL") {
             var sourceInput = $(this).children("input");
@@ -628,6 +665,9 @@ javascript: (() => {
         }
       });
     });
+
+    $fontFaceTextField.trigger("input");
+    
     /* LOGIC FOR STYLESHEET ITERATION */
     stylesheetHelperBtn.onclick = function () {
       if (!jQuery(".stylesheet_helper_container").length) {
@@ -650,9 +690,13 @@ javascript: (() => {
     }
   }
 
-
   fontastic();
   jQuery(".bare-btn.bare-btn__text").on("click", function () {
+    console.log("Next font clicked. State:");
+    console.log("Iteration active?", stylesheetIterationActive);
+    console.log("fontList:", fontList);
+    console.log("currentStep:", currentStep);
+    console.log("lastStep:", lastStep);
     setTimeout(fontastic, 100);
   });
 })();
