@@ -9,7 +9,9 @@ javascript: (() => {
     wkndRed = "#FF4133",
     wkndYellow = "#FFBB00",
     black = "black",
-    white = "white";
+    white = "white",
+    itWorked = "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
+    ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
 
   /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes */
   if (!String.prototype.includes) {
@@ -39,9 +41,12 @@ javascript: (() => {
         );
       // console.log("fontArray in getFonts():", fontArray);
       // console.log("filteredArray in getFonts():", filteredArray);
+      // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
       for (var font of filteredArray) {
         var fontObject = extractFont(font);
         if (fontObject.style === "italic" || fontObject.style === "oblique") {
+        // TRY THE CONDITION BELOW INSTEAD
+        // if (fontObject.style !== "normal") {
           var filter = result.filter(
             (element) => element.family === fontObject.family
           );
@@ -76,6 +81,7 @@ javascript: (() => {
     //   fonts.match(languagesRegex)
     // );
     var allFonts = "";
+    /* IF THERE ARE FONTS WITH LANGUAGE TAGS, SAVE ONLY THE LATIN ONES, AND REMOVE THE TAG */
     for (var result of extractedContent) {
       if (result.includes("/*")) {
         if (result.includes("latin") && !result.includes("-ext")) {
@@ -94,11 +100,11 @@ javascript: (() => {
     // console.log("Font in extractFont(): ", fontFace);
     if (!fontFace) {
       // throw Error("No font detected");
-      console.log("No font detected...");
+      console.log("No font detected in extractFont()...");
     }
-    var parsedFont = fontFace.replace(/(\r\n|\n|\r)/gm, " "),
+    var simplifiedFont = fontFace.replace(/(\r\n|\n|\r)/gm, " "),
       familyRegex = /family:\s*([^;]+);/gi,
-      family = familyRegex.exec(parsedFont)[1],
+      family = familyRegex.exec(simplifiedFont)[1],
       styleRegex = /style:\s*([^;]+);/gi,
       weightRegex = /weight:\s*([^;]+)/gi,
       sourceRegex = /src:\s*([^;]+)/gi,
@@ -112,8 +118,8 @@ javascript: (() => {
       declaration = "@font-face " + fontFace;
 
     /* Check for weight attribute, and if it is numerical, turn it into a number, otherwise set as "normal" */
-    if (parsedFont.match(weightRegex)) {
-      weightExtract = weightRegex.exec(parsedFont);
+    if (simplifiedFont.match(weightRegex)) {
+      weightExtract = weightRegex.exec(simplifiedFont);
       weight = parseInt(weightExtract[1])
         ? parseInt(weightExtract[1])
         : weightExtract[1];
@@ -130,8 +136,8 @@ javascript: (() => {
     }
 
     /* Check for style attribute, otherwise set as "normal" */
-    if (parsedFont.match(styleRegex)) {
-      styleExtract = styleRegex.exec(parsedFont);
+    if (simplifiedFont.match(styleRegex)) {
+      styleExtract = styleRegex.exec(simplifiedFont);
       style = styleExtract[1];
       declaredStyle = style;
     } else {
@@ -145,13 +151,14 @@ javascript: (() => {
       }
     }
 
-    if (!parsedFont.match(sourceRegex).length) {
+    // Check for source attribute
+    if (!simplifiedFont.match(sourceRegex).length) {
       /* DO SOMETHING FOR NO MATCHES */
       source = "No source detected. Please manually enter...";
       prefix = "No source detected. Please manually enter...";
     } else {
       /* DO SOMETHING FOR ONE OR MORE MATCHES */
-      source = determineSrc(parsedFont.match(sourceRegex).join());
+      source = determineSrc(simplifiedFont.match(sourceRegex).join());
       url = source.url;
       prefix = source.prefix;
     }
@@ -320,13 +327,13 @@ javascript: (() => {
     // }
   }
 
-  function showFinale() {
+  function showFinale(image=ohHiMarch) {
     if (!jQuery(".fontastic_finale").length) {
       var finaleContainer = document.createElement("div"),
         finaleImg = document.createElement("img"),
         finaleShroud = document.createElement("div");
 
-      finaleImg.src = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
+      finaleImg.src = image;
       finaleImg.style.cursor = "pointer";
       finaleImg.onclick = function () {
         jQuery(".fontastic_finale").remove();
@@ -572,12 +579,14 @@ javascript: (() => {
           `Next font (${currentStep + 1} of ${lastStep})`
         );
       } else {
-        console.log(
-          "Stopping Iteration in click listener for '.create-btn.flat-btn.flat-btn__primary' at the end of fontastic()..."
-        );
+        // console.log(
+        //   "Stopping Iteration in click listener for '.create-btn.flat-btn.flat-btn__primary' at the end of fontastic()..."
+        // );
+        if (stylesheetIterationActive) {
+          showFinale(itWorked);
+        }
         stopIteration();
         // setTimeout(showFinale, 700);
-        showFinale();
       }
     });
 
@@ -644,7 +653,7 @@ javascript: (() => {
               $(this).append(stackError);
             }
             stackError.innerText = "";
-            if (fontList[currentStep].stack) {
+            if (fontList[currentStep] && fontList[currentStep].stack) {
               $(this).children("input").val(fontList[currentStep].stack);
             } else {
               if (font.family.includes(" ")) {
@@ -664,7 +673,9 @@ javascript: (() => {
                 if (!$(this).val().endsWith("serif")) {
                   stackError.innerText = "Please use a valid font stack.";
                 }
-                fontList[currentStep].stack = e.target.value;
+                if (fontList[currentStep]) {
+                  fontList[currentStep].stack = e.target.value;
+                }
                 font.stack = e.target.value;
                 currentStack = font.stack;
               });
@@ -724,7 +735,7 @@ javascript: (() => {
       }
     };
     runningNoticeDiv.onclick = function () {
-      showFinale();
+      showFinale(ohHiMarch);
     };
     runningNoticeDiv.append(logoImg);
     runningNoticeDiv.append(noticeSpan);
@@ -743,3 +754,6 @@ javascript: (() => {
     setTimeout(fontastic, 100);
   });
 })();
+
+/* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
+/* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
