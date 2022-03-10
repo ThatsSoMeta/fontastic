@@ -1,8 +1,10 @@
-javascript: (() => {
+`javascript: (() => {
   var fontList = [],
     currentStep = 0,
     lastStep = fontList.length,
     stylesheetIterationActive = false,
+    base64String = "",
+    currentSource = "",
     wkndDarkBlue = "#303D78",
     wkndLightBlue = "#3D54CC",
     wkndGreen = "#24B79D",
@@ -333,7 +335,7 @@ javascript: (() => {
   // let url = "https://expectful.com/wp-content/themes/expectful/fonts/sfprowoff/SF-Pro-Display-Medium.woff2"
 
   function base64Converter(url = "") {
-    let base64String = "";
+    // var base64String = "";
     if (!url) {
       console.log("No URL found.");
     } else {
@@ -343,10 +345,11 @@ javascript: (() => {
           const reader = new FileReader();
           reader.onload = function () {
             console.log("Base 64 conversion inside onload function:", this.result);
-            return this.result;
+            // base64String = this.result;
             // base64String = this.result;
           };
           reader.readAsDataURL(font);
+          // console.log("reader.readAsDataURL(font):", reader.readAsDataURL(font));
         });
     }
   }
@@ -402,7 +405,8 @@ javascript: (() => {
     noticeSpan = document.createElement("span"),
     logoBlueURL = "https://i.ibb.co/JR9sbFN/fontastic-logo-blue.png",
     counterDiv = document.createElement("div"),
-    counterText = document.createElement("h5");
+    counterText = document.createElement("h5"),
+    getBase64Btn = document.createElement("button");
 
   counterDiv.className = "fontastic_counter_container";
   counterText.className = "fontastic_counter_text";
@@ -439,6 +443,27 @@ javascript: (() => {
   stylesheetHelperBtn.style.margin = "10px auto";
   stylesheetHelperBtn.style.padding = "0 20px";
   stylesheetHelperBtn.style.border = "none";
+
+  getBase64Btn.className = "stylesheet_b64_button";
+  getBase64Btn.innerText = "Get base64";
+  getBase64Btn.style.color = white;
+  getBase64Btn.style.fontWeight = "bold";
+  getBase64Btn.style.fontSize = "12px";
+  getBase64Btn.style.backgroundColor = wkndGreen;
+  getBase64Btn.style.height = "40px";
+  getBase64Btn.style.margin = "10px auto";
+  getBase64Btn.style.padding = "0 10px";
+  getBase64Btn.style.border = "none";
+  getBase64Btn.onclick = function () {
+    console.log("Getting base64 info!");
+    var url = currentSource;
+    if (!url) {
+      return ""
+    } else {
+      base64Converter(url)
+    }
+
+  };
 
   stylesheetAbortBtn.className = "stylesheet_abort_button";
   stylesheetAbortBtn.innerText = "Clear stylesheet";
@@ -649,7 +674,7 @@ javascript: (() => {
       jQuery(".stylesheet_helper_container").remove();
     };
 
-    $fontFaceTextField.on("input, change", function () {
+    $fontFaceTextField.on("input", function () {
       sourceError.innerText = "";
       if (!$(this).val()) {
         return;
@@ -725,7 +750,8 @@ javascript: (() => {
                 } else {
                   sourceError.innerText = "";
                   updatedURL = source;
-                  font.updatedURL = updatedURL;
+                  font.updatedURL = source;
+                  currentSource = source;
                   // console.log("base64 inside input.on() function at bottom: ", base64);
                 }
                 source.includes(".woff2")
@@ -748,6 +774,7 @@ javascript: (() => {
                 }
               });
           } else if ($(this).children("label").text() == "Font") {
+            $(this).children("label").append(getBase64Btn);
             if (base64) {
               $(this)
                 .find("div textarea")
@@ -760,7 +787,7 @@ javascript: (() => {
       });
     });
 
-    // $fontFaceTextField.trigger("input");
+    $fontFaceTextField.trigger("input");
 
     /* LOGIC FOR STYLESHEET ITERATION */
     stylesheetHelperBtn.onclick = function () {
@@ -797,3 +824,4 @@ javascript: (() => {
 
 /* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
 /* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
+`
