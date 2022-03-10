@@ -10,7 +10,8 @@ javascript: (() => {
     wkndYellow = "#FFBB00",
     black = "black",
     white = "white",
-    itWorked = "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
+    itWorked =
+      "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
     ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
 
   /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes */
@@ -45,8 +46,8 @@ javascript: (() => {
       for (var font of filteredArray) {
         var fontObject = extractFont(font);
         if (fontObject.style === "italic" || fontObject.style === "oblique") {
-        // TRY THE CONDITION BELOW INSTEAD
-        // if (fontObject.style !== "normal") {
+          // TRY THE CONDITION BELOW INSTEAD
+          // if (fontObject.style !== "normal") {
           var filter = result.filter(
             (element) => element.family === fontObject.family
           );
@@ -113,6 +114,7 @@ javascript: (() => {
       style,
       declaredWeight,
       weight,
+      declaredURL,
       url,
       prefix,
       declaration = "@font-face " + fontFace;
@@ -159,6 +161,7 @@ javascript: (() => {
     } else {
       /* DO SOMETHING FOR ONE OR MORE MATCHES */
       source = determineSrc(simplifiedFont.match(sourceRegex).join());
+      declaredURL = source.url;
       url = source.url;
       prefix = source.prefix;
     }
@@ -327,7 +330,30 @@ javascript: (() => {
     // }
   }
 
-  function showFinale(image=ohHiMarch) {
+  // let url = "https://expectful.com/wp-content/themes/expectful/fonts/sfprowoff/SF-Pro-Display-Medium.woff2"
+
+  function base64Converter(url = "") {
+    let base64String = "";
+    if (!url) {
+      console.log("No URL found.");
+    } else {
+      fetch(url)
+        .then((response) => response.blob())
+        .then((font) => {
+          const reader = new FileReader();
+          reader.onload = function () {
+            console.log("Base 64 conversion inside onload function:", this.result);
+            return this.result;
+            // base64String = this.result;
+          };
+          reader.readAsDataURL(font);
+        });
+    }
+  }
+
+  // base64Converter(url);
+
+  function showFinale(image = ohHiMarch) {
     if (!jQuery(".fontastic_finale").length) {
       var finaleContainer = document.createElement("div"),
         finaleImg = document.createElement("img"),
@@ -522,7 +548,10 @@ javascript: (() => {
       $fontModalContainer = jQuery(".bx-modal_container"),
       $fontFaceTextField = $fontModal.find(
         ".font-input.ember-text-area:not('.input-wrap_input')"
-      );
+      ),
+      base64 = "",
+      updatedURL = "";
+
 
     if ($fontModalContainer.length) {
       $fontModalContainer.css("max-height", "98%");
@@ -620,7 +649,8 @@ javascript: (() => {
       jQuery(".stylesheet_helper_container").remove();
     };
 
-    $fontFaceTextField.on("input", function () {
+    $fontFaceTextField.on("input, change", function () {
+      sourceError.innerText = "";
       if (!$(this).val()) {
         return;
       }
@@ -685,26 +715,30 @@ javascript: (() => {
             if (!jQuery(".source_error_text").length) {
               $(this).append(sourceError);
             }
-            sourceError.innerText = "";
-            if (!urlRegex.exec(sourceInput.val())) {
-              sourceError.innerText = "Please enter a valid URL.";
-            }
             $(this)
               .children("input")
               .on("input", function () {
                 var format,
                   source = sourceInput.val();
+                if (!urlRegex.exec(source)) {
+                  sourceError.innerText = "Please enter a valid URL.";
+                } else {
+                  sourceError.innerText = "";
+                  updatedURL = source;
+                  font.updatedURL = updatedURL;
+                  // console.log("base64 inside input.on() function at bottom: ", base64);
+                }
                 source.includes(".woff2")
-                  ? (format = "woff2")
-                  : source.includes(".woff")
-                  ? (format = "woff")
-                  : source.includes(".ttf")
-                  ? (format = "ttf")
-                  : source.includes(".otf")
-                  ? (format = "otf")
-                  : source.includes(".eot")
-                  ? (format = "eot")
-                  : (format = "unknown");
+                ? (format = "woff2")
+                : source.includes(".woff")
+                ? (format = "woff")
+                : source.includes(".ttf")
+                ? (format = "ttf")
+                : source.includes(".otf")
+                ? (format = "otf")
+                : source.includes(".eot")
+                ? (format = "eot")
+                : (format = "unknown");
                 prefix = `data:application/x-font-${format};base64,`;
                 $fontModal.find("textarea").last().val(prefix);
                 if (!urlRegex.exec(sourceInput.val())) {
@@ -714,13 +748,19 @@ javascript: (() => {
                 }
               });
           } else if ($(this).children("label").text() == "Font") {
-            $(this).find("div textarea").val(prefix);
+            if (base64) {
+              $(this)
+                .find("div textarea")
+                .val(prefix + base64);
+            } else {
+              $(this).find("div textarea").val(prefix);
+            }
           }
         }
       });
     });
 
-    $fontFaceTextField.trigger("input");
+    // $fontFaceTextField.trigger("input");
 
     /* LOGIC FOR STYLESHEET ITERATION */
     stylesheetHelperBtn.onclick = function () {
