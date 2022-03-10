@@ -1,4 +1,4 @@
-`javascript: (() => {
+javascript: (() => {
   var fontList = [],
     currentStep = 0,
     lastStep = fontList.length,
@@ -460,7 +460,7 @@
     if (!url) {
       return ""
     } else {
-      base64Converter(url)
+      return base64Converter(url)
     }
 
   };
@@ -824,4 +824,3 @@
 
 /* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
 /* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
-`
