@@ -77,8 +77,9 @@ javascript: (() => {
     }
     // console.log("fonts in findLatinTags(): ", fonts);
     /* Check for Latin fonts */
-    var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"]+})/gi,
+    var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&]+})/gi,
       extractedContent = fonts.match(languagesRegex);
+    // console.log("fonts in findLatinTags(): ", fonts);
     // console.log(
     //   "extractedContent in fintLatinTags(): ",
     //   fonts.match(languagesRegex)
@@ -94,7 +95,7 @@ javascript: (() => {
         allFonts += result;
       }
     }
-    var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"]+})/gi;
+    var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&]+})/gi;
     var allFontsTagRemoved = allFonts.match(removeTagRegex);
     return allFontsTagRemoved.join();
   }
@@ -110,7 +111,7 @@ javascript: (() => {
       family = familyRegex.exec(simplifiedFont)[1],
       styleRegex = /style:\s*([^;]+);/gi,
       weightRegex = /weight:\s*([^;]+)/gi,
-      sourceRegex = /src:\s*([^;]+)/gi,
+      sourceRegex = /src:\s*([\w\d\s:'\-\/.+,()%_"=?&]+)/gi,
       source = "",
       declaredStyle,
       style,
@@ -194,27 +195,38 @@ javascript: (() => {
 
   function extractSourceURL(src = "") {
     var format;
+    console.log("src in extractSourceURL(): ", src);
 
-    src.includes(".woff2")
+    src.includes("woff2")
       ? (format = "woff2")
-      : src.includes(".woff")
+      : src.includes("woff")
       ? (format = "woff")
-      : src.includes(".ttf")
+      : src.includes("ttf") || src.includes("truetype")
       ? (format = "ttf")
-      : src.includes(".otf")
+      : src.includes("otf")
       ? (format = "otf")
-      : src.includes(".eot")
+      : src.includes("eot") || src.includes("embedded-opentype")
       ? (format = "eot")
       : (format = "unknown");
+      /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
-    var searchString = new RegExp(
-        String.raw`[^\s("']+\.${format}[^\s)"']*`,
-        "g"
-      ),
-      prefix = `data:application/x-font-${format};base64,`,
-      resultUrl = src.match(searchString);
+    var sourceURLRegex = new RegExp(String.raw`url\s*\(["']*([\w\d.\/?=:&]+)["']*\)\s*format\(['"]${format}["']\)`, "gi");
+    var prefix = `data:application/x-font-${format};base64,`;
+    // var resultUrl;
+    // resultUrl = src.match(searchStringNoFormatInURL);
+    srcMatchList = sourceURLRegex.exec(src);
+    console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
+
+    // if (src.match(searchStringWithFormat)) {
+    //   console.log("Source with format in url found: ", src.match(searchStringWithFormat));
+    //   resultUrl = src.match(searchStringWithFormat);
+    // } else {
+    //   console.log("No match in extractSourceURL(). Source regex result = ", src.match(searchStringNoFormatInURL));
+    //   resultUrl = src.match(searchStringNoFormatInURL);
+    // }
+    // console.log("resultUrl in extractSourceUrl():", resultUrl);
     return {
-      url: resultUrl[0],
+      url: srcMatchList[1],
       prefix: prefix,
     };
   }
@@ -335,17 +347,19 @@ javascript: (() => {
   // let url = "https://expectful.com/wp-content/themes/expectful/fonts/sfprowoff/SF-Pro-Display-Medium.woff2"
 
   function base64Converter(url = "") {
-    // var base64String = "";
+    console.log("Running base64Converter...");
     if (!url) {
-      console.log("No URL found.");
+      console.log("No URL found in base64Converter.");
     } else {
       fetch(url)
         .then((response) => response.blob())
         .then((font) => {
           const reader = new FileReader();
           reader.onload = function () {
-            console.log("Base 64 conversion inside onload function:", this.result);
-            // base64String = this.result;
+            console.log(
+              "Base 64 conversion inside onload function:",
+              this.result
+            );
             // base64String = this.result;
           };
           reader.readAsDataURL(font);
@@ -454,16 +468,6 @@ javascript: (() => {
   getBase64Btn.style.margin = "10px auto";
   getBase64Btn.style.padding = "0 10px";
   getBase64Btn.style.border = "none";
-  getBase64Btn.onclick = function () {
-    console.log("Getting base64 info!");
-    var url = currentSource;
-    if (!url) {
-      return ""
-    } else {
-      return base64Converter(url)
-    }
-
-  };
 
   stylesheetAbortBtn.className = "stylesheet_abort_button";
   stylesheetAbortBtn.innerText = "Clear stylesheet";
@@ -576,7 +580,16 @@ javascript: (() => {
       ),
       base64 = "",
       updatedURL = "";
-
+    getBase64Btn.onclick = function () {
+      console.log("Getting base64 info!");
+      var url = currentSource;
+      console.log("URL in button onclick: ", url);
+      if (!url) {
+        return "";
+      } else {
+        return base64Converter(url);
+      }
+    };
 
     if ($fontModalContainer.length) {
       $fontModalContainer.css("max-height", "98%");
@@ -753,18 +766,19 @@ javascript: (() => {
                   font.updatedURL = source;
                   currentSource = source;
                   // console.log("base64 inside input.on() function at bottom: ", base64);
+                  console.log("currentSource:", currentSource);
                 }
                 source.includes(".woff2")
-                ? (format = "woff2")
-                : source.includes(".woff")
-                ? (format = "woff")
-                : source.includes(".ttf")
-                ? (format = "ttf")
-                : source.includes(".otf")
-                ? (format = "otf")
-                : source.includes(".eot")
-                ? (format = "eot")
-                : (format = "unknown");
+                  ? (format = "woff2")
+                  : source.includes(".woff")
+                  ? (format = "woff")
+                  : source.includes(".ttf")
+                  ? (format = "ttf")
+                  : source.includes(".otf")
+                  ? (format = "otf")
+                  : source.includes(".eot")
+                  ? (format = "eot")
+                  : (format = "unknown");
                 prefix = `data:application/x-font-${format};base64,`;
                 $fontModal.find("textarea").last().val(prefix);
                 if (!urlRegex.exec(sourceInput.val())) {
@@ -824,3 +838,4 @@ javascript: (() => {
 
 /* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
 /* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
+/* IF THERE IS NO "WOFF2" OR ANYTHING IN  URL, IT DOES NOT WORK  */
