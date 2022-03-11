@@ -3,7 +3,7 @@ javascript: (() => {
     currentStep = 0,
     lastStep = fontList.length,
     stylesheetIterationActive = false,
-    base64String = "",
+    prefix = "",
     currentSource = "",
     wkndDarkBlue = "#303D78",
     wkndLightBlue = "#3D54CC",
@@ -119,7 +119,7 @@ javascript: (() => {
       weight,
       declaredURL,
       url,
-      prefix,
+      // prefix,
       declaration = "@font-face " + fontFace;
 
     /* Check for weight attribute, and if it is numerical, turn it into a number, otherwise set as "normal" */
@@ -160,7 +160,7 @@ javascript: (() => {
     if (!simplifiedFont.match(sourceRegex).length) {
       /* DO SOMETHING FOR NO MATCHES */
       source = "No source detected. Please manually enter...";
-      prefix = "No source detected. Please manually enter...";
+      // prefix = "No source detected. Please manually enter...";
     } else {
       /* DO SOMETHING FOR ONE OR MORE MATCHES */
       source = determineSrc(simplifiedFont.match(sourceRegex).join());
@@ -195,7 +195,7 @@ javascript: (() => {
 
   function extractSourceURL(src = "") {
     var format;
-    console.log("src in extractSourceURL(): ", src);
+    // console.log("src in extractSourceURL(): ", src);
 
     src.includes("woff2")
       ? (format = "woff2")
@@ -210,21 +210,10 @@ javascript: (() => {
       : (format = "unknown");
       /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
-    var sourceURLRegex = new RegExp(String.raw`url\s*\(["']*([\w\d.\/?=:&]+)["']*\)\s*format\(['"]${format}["']\)`, "gi");
-    var prefix = `data:application/x-font-${format};base64,`;
-    // var resultUrl;
-    // resultUrl = src.match(searchStringNoFormatInURL);
+    var sourceURLRegex = new RegExp(String.raw`url\s*\(["']*([\w\d.\/?=:&]+)["']*\)\s*format\(['"]${format}["']\)`, "gi"),
+      prefix = `data:application/x-font-${format};base64,`;
     srcMatchList = sourceURLRegex.exec(src);
-    console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
-
-    // if (src.match(searchStringWithFormat)) {
-    //   console.log("Source with format in url found: ", src.match(searchStringWithFormat));
-    //   resultUrl = src.match(searchStringWithFormat);
-    // } else {
-    //   console.log("No match in extractSourceURL(). Source regex result = ", src.match(searchStringNoFormatInURL));
-    //   resultUrl = src.match(searchStringNoFormatInURL);
-    // }
-    // console.log("resultUrl in extractSourceUrl():", resultUrl);
+    // console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
     return {
       url: srcMatchList[1],
       prefix: prefix,
@@ -344,31 +333,28 @@ javascript: (() => {
     // }
   }
 
-  // let url = "https://expectful.com/wp-content/themes/expectful/fonts/sfprowoff/SF-Pro-Display-Medium.woff2"
-
-  function base64Converter(url = "") {
+  /* <3 Huge help from Triona, Nyssa, and https://pqina.nl/blog/convert-a-file-to-a-base64-string-with-javascript/ */
+  async function base64Converter(url = "") {
     console.log("Running base64Converter...");
     if (!url) {
       console.log("No URL found in base64Converter.");
     } else {
-      fetch(url)
+      console.log("URL:", url);
+      await fetch(url)
         .then((response) => response.blob())
         .then((font) => {
           const reader = new FileReader();
           reader.onload = function () {
-            console.log(
-              "Base 64 conversion inside onload function:",
-              this.result
-            );
-            // base64String = this.result;
+            const base64String = reader.result
+              .replace("data:", "")
+              .replace(/^.+,/, "");
+            console.log(base64String);
+            jQuery("textarea:last()").val(prefix + base64String);
           };
           reader.readAsDataURL(font);
-          // console.log("reader.readAsDataURL(font):", reader.readAsDataURL(font));
         });
     }
   }
-
-  // base64Converter(url);
 
   function showFinale(image = ohHiMarch) {
     if (!jQuery(".fontastic_finale").length) {
@@ -580,16 +566,16 @@ javascript: (() => {
       ),
       base64 = "",
       updatedURL = "";
-    getBase64Btn.onclick = function () {
-      console.log("Getting base64 info!");
-      var url = currentSource;
-      console.log("URL in button onclick: ", url);
-      if (!url) {
-        return "";
-      } else {
-        return base64Converter(url);
-      }
-    };
+    // getBase64Btn.onclick = function () {
+    //   console.log("Getting base64 info!");
+    //   var url = currentSource;
+    //   console.log("URL in button onclick: ", url);
+    //   if (!url) {
+    //     return "";
+    //   } else {
+    //     return base64Converter(url);
+    //   }
+    // };
 
     if ($fontModalContainer.length) {
       $fontModalContainer.css("max-height", "98%");
@@ -737,7 +723,7 @@ javascript: (() => {
               .children("input")
               .on("input", function (e) {
                 stackError.innerText = "";
-                console.log("e.target.value in stack input: ", e.target.value);
+                // console.log("e.target.value in stack input: ", e.target.value);
                 if (!$(this).val().endsWith("serif")) {
                   stackError.innerText = "Please use a valid font stack.";
                 }
@@ -753,6 +739,8 @@ javascript: (() => {
             if (!jQuery(".source_error_text").length) {
               $(this).append(sourceError);
             }
+            getBase64Btn.onclick = function() {base64Converter(sourceInput.val());};
+            console.log("sourceInput.val(): ", sourceInput.val());
             $(this)
               .children("input")
               .on("input", function () {
@@ -766,7 +754,6 @@ javascript: (() => {
                   font.updatedURL = source;
                   currentSource = source;
                   // console.log("base64 inside input.on() function at bottom: ", base64);
-                  console.log("currentSource:", currentSource);
                 }
                 source.includes(".woff2")
                   ? (format = "woff2")
@@ -789,13 +776,14 @@ javascript: (() => {
               });
           } else if ($(this).children("label").text() == "Font") {
             $(this).children("label").append(getBase64Btn);
-            if (base64) {
-              $(this)
-                .find("div textarea")
-                .val(prefix + base64);
-            } else {
-              $(this).find("div textarea").val(prefix);
-            }
+            // if (base64) {
+            //   $(this)
+            //     .find("div textarea")
+            //     .val(prefix + base64);
+            // } else {
+            //   // $(this).find("div textarea").val(prefix);
+            //   null
+            // }
           }
         }
       });
