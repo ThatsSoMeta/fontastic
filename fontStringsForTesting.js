@@ -723,4 +723,25 @@ var oatsOvernight = `
   font-stretch: normal;
 }
 `;
+
+var bloomingdalesExamples = `@font-face {
+  font-family: Avenir;
+  font-display: swap;
+  src: local("Avenir Roman"),local("Avenir LT W01 55 Roman"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/2f5a6074-badc-4e08-83f1-ed67fe5c3d7c.eot#iefix) format("eot"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/b9ebb19d-88c1-4cbd-9baf-cf51972422ec.woff) format("woff"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/5ed4f98e-9044-4810-88ff-74d412c1351f.ttf) format("truetype"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/4cb16859-16ca-4342-b89c-292dc83266af.svg#4cb16859-16ca-4342-b89c-292dc83266af) format("svg")
+}
+
+@media print {
+  @font-face {
+      font-family: Avenir;
+      font-display: swap;
+      src: url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/2f5a6074-badc-4e08-83f1-ed67fe5c3d7c.eot#iefix) format("eot"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/b9ebb19d-88c1-4cbd-9baf-cf51972422ec.woff) format("woff"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/5ed4f98e-9044-4810-88ff-74d412c1351f.ttf) format("truetype"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/4cb16859-16ca-4342-b89c-292dc83266af.svg#4cb16859-16ca-4342-b89c-292dc83266af) format("svg")
+  }
+}
+
+@font-face {
+  font-family: Avenir;
+  font-display: swap;
+  src: local("Avenir Heavy"),local("Avenir LT W01 85 Heavy"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/f61bf0f6-c193-4100-b940-12a1a01dcee5.eot#iefix) format("eot"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/7147ec3a-8ff8-4ec9-8c5c-bd1571dc6ae6.woff) format("woff"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/d1dc54b2-878d-4693-8d6e-b442e99fef68.ttf) format("truetype"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/731dd4d3-64da-427d-ba61-01575b3cf3f7.svg#731dd4d3-64da-427d-ba61-01575b3cf3f7) format("svg");
+  font-weight: 700
+}`
 module.exports = {'language': withLanguageTags}

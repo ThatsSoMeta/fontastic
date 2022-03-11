@@ -10,8 +10,8 @@ var fontList = [],
   wkndRed = "#FF4133",
   wkndYellow = "#FFBB00",
   wkndSand = "#F4EAE1",
-  black = "black",
-  white = "white",
+  black = "#000",
+  white = "#FFF",
   itWorked =
     "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
   ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
@@ -31,6 +31,7 @@ if (!String.prototype.includes) {
 
 function getFonts(allFonts = "") {
   var result = [];
+  console.log("allFonts in getFonts(): ", allFonts);
   allFonts = findLatinTags(allFonts);
   if (!allFonts) {
     throw Error("No font face detected in getFonts().");
@@ -70,8 +71,10 @@ function findLatinTags(fonts = "") {
     return;
   }
   /* Check for Latin fonts */
-  var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&]+})/gi,
+  console.log("fonts in findLatinTags:", fonts);
+  var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
     extractedContent = fonts.match(languagesRegex);
+  console.log("extractedContent in findLatinTags(): ", extractedContent);
   var allFonts = "";
   /* IF THERE ARE FONTS WITH LANGUAGE TAGS, SAVE ONLY THE LATIN ONES, AND REMOVE THE TAG */
   for (var result of extractedContent) {
@@ -83,7 +86,7 @@ function findLatinTags(fonts = "") {
       allFonts += result;
     }
   }
-  var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&]+})/gi;
+  var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&#]+})/gi;
   var allFontsTagRemoved = allFonts.match(removeTagRegex);
   return allFontsTagRemoved.join();
 }
@@ -97,7 +100,7 @@ function extractFont(fontFace = "") {
     family = familyRegex.exec(simplifiedFont)[1],
     styleRegex = /style:\s*([^;]+);/gi,
     weightRegex = /weight:\s*([^;]+)/gi,
-    sourceRegex = /src:\s*([\w\d\s:'\-\/.+,()%_"=?&]+)/gi,
+    sourceRegex = /src:\s*([\w\d\s:'\-\/.+,()%_"=?&#]+)/gi,
     source = "",
     declaredStyle,
     style,
@@ -105,7 +108,9 @@ function extractFont(fontFace = "") {
     weight,
     declaredURL,
     url,
-    declaration = "@font-face " + fontFace;
+    declaration = "@font-face " + fontFace,
+    declarationStart = declaration.slice(0, -2).trim(),
+    declarationEnd = declaration.slice(-1);
 
   if (simplifiedFont.match(weightRegex)) {
     weightExtract = weightRegex.exec(simplifiedFont);
@@ -117,10 +122,14 @@ function extractFont(fontFace = "") {
     weight = "normal";
     declaredWeight = weight;
     if (!declaration.includes("font-weight")) {
-      declaration =
-        declaration.slice(0, -2) +
-        "\nfont-weight: normal;\n" +
-        declaration.slice(-1);
+      if (!declarationStart.endsWith(";")) {
+        declarationStart += ";";
+      }
+
+      if (!declarationEnd.endsWith("}")) {
+        declarationEnd += "}";
+      }
+      declarationStart += "\nfont-weight: normal;\n";
     }
   }
 
@@ -132,17 +141,28 @@ function extractFont(fontFace = "") {
     style = "normal";
     declaredStyle = undefined;
     if (!declaration.includes("font-style")) {
-      declaration =
-        declaration.slice(0, -2) +
-        "\nfont-style: normal;\n" +
-        declaration.slice(-1);
+      if (!declarationStart.endsWith(";")) {
+        declarationStart += ";";
+      }
+
+      if (!declarationEnd.endsWith("}")) {
+        declarationEnd += "}";
+      }
+      declarationStart += "\nfont-style: normal;\n";
     }
   }
 
+  declaration = declarationStart + declarationEnd;
+
+  console.log(
+    "simplifiedFont.match(sourceRegex) in extractFont(): ",
+    simplifiedFont.match(sourceRegex)
+  );
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
     source = determineSrc(simplifiedFont.match(sourceRegex).join());
+    console.log("source in extractFont():", source);
     declaredURL = source.url;
     url = source.url;
     prefix = source.prefix;
@@ -174,7 +194,7 @@ function determineSrc(src = "") {
 
 function extractSourceURL(src = "") {
   var format;
-  // console.log("src in extractSourceURL(): ", src);
+  console.log("src in extractSourceURL(): ", src);
 
   src.includes("woff2")
     ? (format = "woff2")
@@ -189,13 +209,14 @@ function extractSourceURL(src = "") {
     : (format = "unknown");
   /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
+  console.log("Format in extractSourceURL(): ", format);
   var sourceURLRegex = new RegExp(
-      String.raw`url\s*\(["']*([\w\d.\/?=:&]+)["']*\)\s*format\(['"]${format}["']\)`,
+      String.raw`url\(['"]?([\w\d:\/\-.&%#$_=]*)['"]?\)\s*format\(['"]?${format}['"]?\)`,
       "gi"
     ),
     prefix = `data:application/x-font-${format};base64,`;
   srcMatchList = sourceURLRegex.exec(src);
-  // console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
+  console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
   return {
     url: srcMatchList[1],
     prefix: prefix,
@@ -775,9 +796,9 @@ function fontastic() {
   runningNoticeDiv.onclick = function () {
     showFinale();
   };
-  runningNoticeDiv.append(logoImg);
-  runningNoticeDiv.append(noticeSpan);
   if (!jQuery(".fontastic_logo_container").length) {
+    runningNoticeDiv.append(logoImg);
+    runningNoticeDiv.append(noticeSpan);
     jQuery("body").append(runningNoticeDiv);
   }
 }
@@ -786,8 +807,6 @@ jQuery(".bare-btn.bare-btn__text").on("click", function () {
   setTimeout(fontastic, 100);
 });
 
-/* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
 /* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
-/* IF THERE IS NO "WOFF2" OR ANYTHING IN  URL, IT DOES NOT WORK - fixed 3/10/2022 */
-/* MAKE THE BASE64 BUTTON ONLY APPEAR WHEN THERE IS A VALID URL - fixed 3/10/2022 (disable button if there is no valid url) */
 /* FOR FONTS WITH PARTIAL URLS, PULL IN URL PREFIX TO IDENTICAL FAMILY NAMES */
+/* WHAT IF DECLARATION IS MISSING CLOSING SEMICOLON? ADD FIX TO extractFont() PLEASE */
