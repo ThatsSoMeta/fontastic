@@ -10,8 +10,10 @@ var fontList = [],
   wkndRed = "#FF4133",
   wkndYellow = "#FFBB00",
   wkndSand = "#F4EAE1",
+  wkndBrown = "#CC9965",
   black = "#000",
   white = "#FFF",
+  buttonHeight = "40px",
   itWorked =
     "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
   ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
@@ -108,7 +110,7 @@ function extractFont(fontFace = "") {
     weight,
     declaredURL,
     url,
-    declaration = "@font-face " + fontFace,
+    declaration = "@font-face " + fontFace.trim(),
     declarationStart = declaration.slice(0, -2).trim(),
     declarationEnd = declaration.slice(-1);
 
@@ -125,7 +127,6 @@ function extractFont(fontFace = "") {
       if (!declarationStart.endsWith(";")) {
         declarationStart += ";";
       }
-
       if (!declarationEnd.endsWith("}")) {
         declarationEnd += "}";
       }
@@ -144,7 +145,6 @@ function extractFont(fontFace = "") {
       if (!declarationStart.endsWith(";")) {
         declarationStart += ";";
       }
-
       if (!declarationEnd.endsWith("}")) {
         declarationEnd += "}";
       }
@@ -153,11 +153,14 @@ function extractFont(fontFace = "") {
   }
 
   declaration = declarationStart + declarationEnd;
+  // console.log("Declaration before removing double semicolons: ", declaration);
+  declaration = declaration.replace(/;\s*;/g, ";");
+  // console.log("Declaration after removing double semicolons: ", declaration);
 
-  console.log(
-    "simplifiedFont.match(sourceRegex) in extractFont(): ",
-    simplifiedFont.match(sourceRegex)
-  );
+  // console.log(
+  //   "simplifiedFont.match(sourceRegex) in extractFont(): ",
+  //   simplifiedFont.match(sourceRegex)
+  // );
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
@@ -194,7 +197,7 @@ function determineSrc(src = "") {
 
 function extractSourceURL(src = "") {
   var format;
-  console.log("src in extractSourceURL(): ", src);
+  // console.log("src in extractSourceURL(): ", src);
 
   src.includes("woff2")
     ? (format = "woff2")
@@ -216,7 +219,7 @@ function extractSourceURL(src = "") {
     ),
     prefix = `data:application/x-font-${format};base64,`;
   srcMatchList = sourceURLRegex.exec(src);
-  console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
+  // console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
   return {
     url: srcMatchList[1],
     prefix: prefix,
@@ -328,12 +331,6 @@ function stopIteration() {
   lastStep = fontList.length;
   stylesheetIterationActive = false;
   $(".bare-btn.bare-btn__text").text(`New Font`);
-  // if (jQuery(".font-input.ember-text-area:not('.input-wrap_input')").length) {
-  //   jQuery(".font-input.ember-text-area:not('.input-wrap_input')").val("");
-  //   jQuery(".font-input.ember-text-area:not('.input-wrap_input')").trigger(
-  //     "input"
-  //   );
-  // }
 }
 
 /* <3 Huge help from Triona, Nyssa, and https://pqina.nl/blog/convert-a-file-to-a-base64-string-with-javascript/ */
@@ -345,9 +342,6 @@ async function base64Converter(url = "") {
     console.log("URL:", url);
     await fetch(url)
       .then((response) => {
-        if (response.status) {
-          console.log("response.status:", response.status);
-        }
         response.blob();
       })
       .then((font) => {
@@ -356,16 +350,17 @@ async function base64Converter(url = "") {
           const base64String = reader.result
             .replace("data:", "")
             .replace(/^.+,/, "");
-          // console.log(base64String);
           jQuery("textarea:last()").val(prefix + base64String);
         };
         reader.readAsDataURL(font);
       })
       .catch((error) => {
         console.error("Error:", error);
-        base64Error.innerText = "Looks like this URL isn't working. Please try a different URL or skip this font.";
+        base64Error.innerText =
+          "Looks like this URL isn't working. Please try a different URL or skip this font.";
         base64Btn.disabled = true;
-        base64Btn.style.backgroundColor = wkndSand;
+        // base64Btn.style.backgroundColor = wkndSand;
+        base64Btn.style.opacity = ".5";
       });
   }
 }
@@ -407,6 +402,7 @@ var weightError = document.createElement("p"),
   stackError = document.createElement("p"),
   sourceError = document.createElement("p"),
   base64Error = document.createElement("p"),
+  skipFontBtn = document.createElement("button"),
   stylesheetHelperBtn = document.createElement("button"),
   stylesheetAbortBtn = document.createElement("button"),
   stylesheetShroud = document.createElement("div"),
@@ -421,7 +417,8 @@ var weightError = document.createElement("p"),
   logoBlueURL = "https://i.ibb.co/JR9sbFN/fontastic-logo-blue.png",
   counterDiv = document.createElement("div"),
   counterText = document.createElement("h5"),
-  base64Btn = document.createElement("button");
+  base64Btn = document.createElement("button"),
+  stylesheetButtonsDiv = document.createElement("div");
 
 counterDiv.className = "fontastic_counter_container";
 counterText.className = "fontastic_counter_text";
@@ -465,7 +462,7 @@ stylesheetHelperBtn.innerText = "Let's try a whole stylesheet!";
 stylesheetHelperBtn.style.color = white;
 stylesheetHelperBtn.style.fontWeight = "bold";
 stylesheetHelperBtn.style.backgroundColor = wkndLightBlue;
-stylesheetHelperBtn.style.height = "40px";
+stylesheetHelperBtn.style.height = buttonHeight;
 stylesheetHelperBtn.style.margin = "10px auto";
 stylesheetHelperBtn.style.padding = "0 20px";
 stylesheetHelperBtn.style.border = "none";
@@ -475,8 +472,9 @@ base64Btn.innerText = "Get base64";
 base64Btn.style.color = white;
 base64Btn.style.fontWeight = "bold";
 base64Btn.style.fontSize = "12px";
-base64Btn.style.backgroundColor = wkndSand;
-base64Btn.style.height = "40px";
+base64Btn.style.backgroundColor = wkndGreen;
+base64Btn.style.opacity = "1";
+base64Btn.style.height = buttonHeight;
 base64Btn.style.margin = "10px auto";
 base64Btn.style.padding = "0 10px";
 base64Btn.style.border = "none";
@@ -485,14 +483,27 @@ stylesheetAbortBtn.className = "stylesheet_abort_button";
 stylesheetAbortBtn.innerText = "Clear stylesheet";
 stylesheetAbortBtn.style.color = white;
 stylesheetAbortBtn.style.fontWeight = "bold";
-stylesheetAbortBtn.style.backgroundColor = wkndRed;
-stylesheetAbortBtn.style.height = "40px";
-stylesheetAbortBtn.style.margin = "10px auto";
+stylesheetAbortBtn.style.backgroundColor = wkndBrown;
+stylesheetAbortBtn.style.height = buttonHeight;
+stylesheetAbortBtn.style.margin = "10px 5px";
 stylesheetAbortBtn.style.padding = "0 20px";
 stylesheetAbortBtn.style.border = "none";
 stylesheetAbortBtn.onclick = function () {
   stopIteration();
   jQuery(".bx-modal_close").click();
+};
+
+skipFontBtn.className = "fontastic_skip_font";
+skipFontBtn.innerText = "Skip Font";
+skipFontBtn.style.backgroundColor = wkndRed;
+skipFontBtn.style.color = white;
+skipFontBtn.style.fontWeight = "bold";
+skipFontBtn.style.height = buttonHeight;
+skipFontBtn.style.margin = "10px 5px";
+skipFontBtn.style.padding = "0 20px";
+skipFontBtn.style.border = "none";
+skipFontBtn.onclick = function () {
+  console.log("Skip font activated");
 };
 
 stylesheetShroud.className = "fontastic_shroud";
@@ -601,7 +612,8 @@ function fontastic() {
         .find("div.slat:not(.slat__taller):has('textarea:last()') label")
         .append(base64Btn);
       base64Btn.disabled = true;
-      base64Btn.style.backgroundColor = wkndSand;
+      // base64Btn.style.backgroundColor = wkndSand;
+      base64Btn.style.opacity = ".5";
     }
     if (!jQuery(".fontastic_counter_container").length) {
       counterDiv.append(counterText);
@@ -671,7 +683,8 @@ function fontastic() {
     $fontFaceTextField.trigger("input");
     if (jQuery(".stylesheet_helper_button").length) {
       jQuery(".stylesheet_helper_button").remove();
-      $fontModalContainer.children("[id*='ember']").append(stylesheetAbortBtn);
+      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
+      $fontModalContainer.children("[id*='ember']").append(stylesheetButtonsDiv);
     }
   };
 
@@ -750,27 +763,26 @@ function fontastic() {
             base64Converter(sourceInput.val());
           };
           base64Btn.disabled = false;
-          base64Btn.style.backgroundColor = wkndGreen;
+          // base64Btn.style.backgroundColor = wkndGreen;
+          base64Btn.style.opacity = "1";
           $(this)
             .children("input")
             .on("input", function (e) {
               var format;
-              // console.log("e.target.value in source input: ", e.target.value);
-              // console.log(
-              //   "Is this source a URL? !!urlRegex.match(e.target.value): ",
-              //   !!e.target.value.match(urlRegex)
-              // );
+              base64Error.innerText = "";
               if (!!e.target.value.match(urlRegex)) {
                 sourceError.innerText = "";
                 updatedURL = e.target.value;
                 font.updatedURL = e.target.value;
                 currentSource = e.target.value;
                 base64Btn.disabled = false;
-                base64Btn.style.backgroundColor = wkndGreen;
+                // base64Btn.style.backgroundColor = wkndGreen;
+                base64Btn.style.opacity = "1";
               } else {
                 sourceError.innerText = "Please enter a valid URL.";
                 base64Btn.disabled = false;
-                base64Btn.style.backgroundColor = wkndSand;
+                // base64Btn.style.backgroundColor = wkndSand;
+                base64Btn.style.opacity = ".5";
               }
               font.declaration.includes("woff2")
                 ? (format = "woff2")
@@ -790,24 +802,25 @@ function fontastic() {
               if (!urlRegex.exec(sourceInput.val())) {
                 sourceError.innerText = "Please enter a valid URL";
                 base64Btn.disabled = true;
-                base64Btn.style.backgroundColor = wkndSand;
+                // base64Btn.style.backgroundColor = wkndSand;
+                base64Btn.style.opacity = ".5";
               } else {
                 sourceError.innerText = "";
                 base64Btn.disabled = false;
-                base64Btn.style.backgroundColor = wkndGreen;
+                // base64Btn.style.backgroundColor = wkndGreen;
+                base64Btn.style.opacity = "1";
               }
             });
         } else if (
           $(this).children("label").text() == "Font" ||
           $(this).children("label").text() == "FontGet base64"
         ) {
-          // if (!jQuery(".base64_error_text").length) {
-          //   $(this).append(base64Error);
-          // }
-          console.log();
-          $(this).append("<br>");
-          $(this).append(base64Error);
-          $(this).children("label").append(base64Btn);
+          if (!jQuery(".base64_error_text").length) {
+            $(this).append(base64Error);
+          }
+          if (!jQuery(".fontastic_b64_button").length) {
+            $(this).children("label").append(base64Btn);
+          }
         }
       }
     });
