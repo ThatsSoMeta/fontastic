@@ -344,7 +344,12 @@ async function base64Converter(url = "") {
   } else {
     console.log("URL:", url);
     await fetch(url)
-      .then((response) => response.blob())
+      .then((response) => {
+        if (response.status) {
+          console.log("response.status:", response.status);
+        }
+        response.blob();
+      })
       .then((font) => {
         const reader = new FileReader();
         reader.onload = function () {
@@ -355,6 +360,12 @@ async function base64Converter(url = "") {
           jQuery("textarea:last()").val(prefix + base64String);
         };
         reader.readAsDataURL(font);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        base64Error.innerText = "Looks like this URL isn't working. Please try a different URL or skip this font.";
+        base64Btn.disabled = true;
+        base64Btn.backgroundColor = wkndSand;
       });
   }
 }
@@ -395,6 +406,7 @@ function showFinale(image = ohHiMarch) {
 var weightError = document.createElement("p"),
   stackError = document.createElement("p"),
   sourceError = document.createElement("p"),
+  base64Error = document.createElement("p"),
   stylesheetHelperBtn = document.createElement("button"),
   stylesheetAbortBtn = document.createElement("button"),
   stylesheetShroud = document.createElement("div"),
@@ -424,18 +436,29 @@ weightError.style.color = wkndLightBlue;
 weightError.style.fontSize = ".7em";
 weightError.style.fontStyle = "italic";
 weightError.style.textAlign = "right";
+weightError.style.margin = "0";
 
 stackError.className = "stack_error_text";
 stackError.style.color = wkndLightBlue;
 stackError.style.fontSize = ".7em";
 stackError.style.fontStyle = "italic";
 stackError.style.textAlign = "right";
+stackError.style.margin = "0";
 
 sourceError.className = "source_error_text";
 sourceError.style.color = wkndLightBlue;
 sourceError.style.fontSize = ".7em";
 sourceError.style.fontStyle = "italic";
 sourceError.style.textAlign = "right";
+sourceError.style.margin = "0";
+
+base64Error.className = "base64_error_text";
+base64Error.style.color = wkndRed;
+base64Error.style.fontSize = ".7em";
+base64Error.style.fontStyle = "italic";
+base64Error.style.textAlign = "right";
+base64Error.style.width = "98%";
+base64Error.style.marginBottom = "0";
 
 stylesheetHelperBtn.className = "stylesheet_helper_button";
 stylesheetHelperBtn.innerText = "Let's try a whole stylesheet!";
@@ -659,6 +682,10 @@ function fontastic() {
 
   $fontFaceTextField.on("input", function () {
     sourceError.innerText = "";
+    weightError.innerHTML = "";
+    stackError.innerText = "";
+    base64Error.innerText = "";
+
     if (!$(this).val()) {
       return;
     }
@@ -677,7 +704,6 @@ function fontastic() {
           if (!jQuery(".weight_error_text").length) {
             $(this).append(weightError);
           }
-          weightError.innerHTML = "";
           if (font.weight !== font.declaredWeight) {
             if (font.declaredWeight === undefined) {
               weightError.innerHTML = `Please add a font-weight to the declaration above. <b>Suggestion: ${font.weight}</b>.`;
@@ -689,7 +715,6 @@ function fontastic() {
           if (!jQuery(".stack_error_text").length) {
             $(this).append(stackError);
           }
-          stackError.innerText = "";
           if (fontList[currentStep] && fontList[currentStep].stack) {
             $(this).children("input").val(fontList[currentStep].stack);
           } else {
@@ -772,7 +797,16 @@ function fontastic() {
                 base64Btn.style.backgroundColor = wkndGreen;
               }
             });
-        } else if ($(this).children("label").text() == "Font") {
+        } else if (
+          $(this).children("label").text() == "Font" ||
+          $(this).children("label").text() == "FontGet base64"
+        ) {
+          // if (!jQuery(".base64_error_text").length) {
+          //   $(this).append(base64Error);
+          // }
+          console.log();
+          $(this).append("<br>");
+          $(this).append(base64Error);
           $(this).children("label").append(base64Btn);
         }
       }
