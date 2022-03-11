@@ -365,7 +365,7 @@ async function base64Converter(url = "") {
         console.error("Error:", error);
         base64Error.innerText = "Looks like this URL isn't working. Please try a different URL or skip this font.";
         base64Btn.disabled = true;
-        base64Btn.backgroundColor = wkndSand;
+        base64Btn.style.backgroundColor = wkndSand;
       });
   }
 }
