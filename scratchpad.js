@@ -9,7 +9,7 @@ format("opentype")`;
 var testRegex = /url\s*\(["']*([\w\d.\/?=:&]+)["']*\)\s*format\(['"]woff2["']\)/gi
 
 // console.log(exampleSourceResult.match(testRegex));
-console.log(testRegex.exec(exampleSourceResult));
+// console.log(testRegex.exec(exampleSourceResult));
 // console.log(testRegex.exec(exampleSourceResult2));
 
 var bloomingdalesProblemFonts = `
@@ -34,3 +34,5 @@ var bloomingdalesProblemFonts = `
     font-weight: 700
 }
 `
+
+var testArray = [1, 2, 3];
