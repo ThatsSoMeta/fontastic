@@ -16,7 +16,6 @@ javascript: (() => {
       "https://c.tenor.com/yvMdPappqVwAAAAM/hell-yeah-it-worked-derrick-boner.gif",
     ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png";
 
-  /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes */
   if (!String.prototype.includes) {
     String.prototype.includes = function (search, start) {
       "use strict";
@@ -34,16 +33,13 @@ javascript: (() => {
     var result = [];
     allFonts = findLatinTags(allFonts);
     if (!allFonts) {
-      // throw Error("No font face detected");
-      console.log("No font face detected...");
+      throw Error("No font face detected in getFonts().");
       return result;
     } else {
       var fontArray = allFonts.trim().split("@font-face"),
         filteredArray = fontArray.filter(
           (n) => !!n && n.includes("font-family")
         );
-      // console.log("fontArray in getFonts():", fontArray);
-      // console.log("filteredArray in getFonts():", filteredArray);
       // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
       for (var font of filteredArray) {
         var fontObject = extractFont(font);
@@ -75,15 +71,9 @@ javascript: (() => {
     if (!fonts) {
       return;
     }
-    // console.log("fonts in findLatinTags(): ", fonts);
     /* Check for Latin fonts */
     var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&]+})/gi,
       extractedContent = fonts.match(languagesRegex);
-    // console.log("fonts in findLatinTags(): ", fonts);
-    // console.log(
-    //   "extractedContent in fintLatinTags(): ",
-    //   fonts.match(languagesRegex)
-    // );
     var allFonts = "";
     /* IF THERE ARE FONTS WITH LANGUAGE TAGS, SAVE ONLY THE LATIN ONES, AND REMOVE THE TAG */
     for (var result of extractedContent) {
@@ -101,10 +91,8 @@ javascript: (() => {
   }
 
   function extractFont(fontFace = "") {
-    // console.log("Font in extractFont(): ", fontFace);
     if (!fontFace) {
-      // throw Error("No font detected");
-      console.log("No font detected in extractFont()...");
+      throw Error("No font detected inside of extractFont().");
     }
     var simplifiedFont = fontFace.replace(/(\r\n|\n|\r)/gm, " "),
       familyRegex = /family:\s*([^;]+);/gi,
@@ -119,10 +107,8 @@ javascript: (() => {
       weight,
       declaredURL,
       url,
-      // prefix,
       declaration = "@font-face " + fontFace;
 
-    /* Check for weight attribute, and if it is numerical, turn it into a number, otherwise set as "normal" */
     if (simplifiedFont.match(weightRegex)) {
       weightExtract = weightRegex.exec(simplifiedFont);
       weight = parseInt(weightExtract[1])
@@ -140,7 +126,6 @@ javascript: (() => {
       }
     }
 
-    /* Check for style attribute, otherwise set as "normal" */
     if (simplifiedFont.match(styleRegex)) {
       styleExtract = styleRegex.exec(simplifiedFont);
       style = styleExtract[1];
@@ -156,13 +141,9 @@ javascript: (() => {
       }
     }
 
-    // Check for source attribute
     if (!simplifiedFont.match(sourceRegex).length) {
-      /* DO SOMETHING FOR NO MATCHES */
       source = "No source detected. Please manually enter...";
-      // prefix = "No source detected. Please manually enter...";
     } else {
-      /* DO SOMETHING FOR ONE OR MORE MATCHES */
       source = determineSrc(simplifiedFont.match(sourceRegex).join());
       declaredURL = source.url;
       url = source.url;
@@ -566,16 +547,6 @@ javascript: (() => {
       ),
       base64 = "",
       updatedURL = "";
-    // getBase64Btn.onclick = function () {
-    //   console.log("Getting base64 info!");
-    //   var url = currentSource;
-    //   console.log("URL in button onclick: ", url);
-    //   if (!url) {
-    //     return "";
-    //   } else {
-    //     return base64Converter(url);
-    //   }
-    // };
 
     if ($fontModalContainer.length) {
       $fontModalContainer.css("max-height", "98%");
@@ -613,33 +584,23 @@ javascript: (() => {
 
     /* On font submit */
     jQuery(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
-      // console.log("Next font");
       if (currentStep + 1 < lastStep) {
-        // console.log(
-        //   "Moving to the next step in click listener for '.create-btn.flat-btn.flat-btn__primary' in fontastic()"
-        // );
         for (var font of fontList) {
           var currentFont = fontList[currentStep];
           if (font.family === currentFont.family && !font.stack) {
             font.stack = currentFont.stack;
           }
         }
-        // console.log("fontList line 531:", fontList);
         stylesheetIterationActive = true;
         currentStep++;
-        //   MAKE THE NEW FONT BUTTON SAY SOMETHING ELSE LIKE "NEXT FONT (2 OF 9)", AND ON CLICK, ACTIVATE THE NEXT FONT (TIMEOUT MAY BE UNNECESSARY THIS WAY)
         $(".bare-btn.bare-btn__text").text(
           `Next font (${currentStep + 1} of ${lastStep})`
         );
       } else {
-        // console.log(
-        //   "Stopping Iteration in click listener for '.create-btn.flat-btn.flat-btn__primary' at the end of fontastic()..."
-        // );
         if (stylesheetIterationActive) {
           showFinale(itWorked);
         }
         stopIteration();
-        // setTimeout(showFinale, 700);
       }
     });
 
@@ -723,7 +684,6 @@ javascript: (() => {
               .children("input")
               .on("input", function (e) {
                 stackError.innerText = "";
-                // console.log("e.target.value in stack input: ", e.target.value);
                 if (!$(this).val().endsWith("serif")) {
                   stackError.innerText = "Please use a valid font stack.";
                 }
@@ -755,17 +715,18 @@ javascript: (() => {
                   currentSource = source;
                   // console.log("base64 inside input.on() function at bottom: ", base64);
                 }
-                source.includes(".woff2")
-                  ? (format = "woff2")
-                  : source.includes(".woff")
-                  ? (format = "woff")
-                  : source.includes(".ttf")
-                  ? (format = "ttf")
-                  : source.includes(".otf")
-                  ? (format = "otf")
-                  : source.includes(".eot")
-                  ? (format = "eot")
-                  : (format = "unknown");
+                source.includes("woff2")
+                ? (format = "woff2")
+                : source.includes("woff")
+                ? (format = "woff")
+                : source.includes("ttf") || source.includes("truetype")
+                ? (format = "ttf")
+                : source.includes("otf")
+                ? (format = "otf")
+                : source.includes("eot") || source.includes("embedded-opentype")
+                ? (format = "eot")
+                : (format = "unknown");
+
                 prefix = `data:application/x-font-${format};base64,`;
                 $fontModal.find("textarea").last().val(prefix);
                 if (!urlRegex.exec(sourceInput.val())) {
@@ -776,14 +737,6 @@ javascript: (() => {
               });
           } else if ($(this).children("label").text() == "Font") {
             $(this).children("label").append(getBase64Btn);
-            // if (base64) {
-            //   $(this)
-            //     .find("div textarea")
-            //     .val(prefix + base64);
-            // } else {
-            //   // $(this).find("div textarea").val(prefix);
-            //   null
-            // }
           }
         }
       });
@@ -815,15 +768,10 @@ javascript: (() => {
 
   fontastic();
   jQuery(".bare-btn.bare-btn__text").on("click", function () {
-    // console.log("Next font clicked. State:");
-    // console.log("Iteration active?", stylesheetIterationActive);
-    // console.log("fontList:", fontList);
-    // console.log("currentStep:", currentStep);
-    // console.log("lastStep:", lastStep);
     setTimeout(fontastic, 100);
   });
 })();
 
 /* WORK ON LAST FONT IN STYLESHEET - fixed 3/8/2022 */
 /* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
-/* IF THERE IS NO "WOFF2" OR ANYTHING IN  URL, IT DOES NOT WORK  */
+/* IF THERE IS NO "WOFF2" OR ANYTHING IN  URL, IT DOES NOT WORK - fixed 3/10/2022 */
