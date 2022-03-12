@@ -43,7 +43,6 @@ function getFonts(allFonts = "") {
   allFonts = findLatinTags(allFonts);
   if (!allFonts) {
     throw Error("No font face detected in getFonts().");
-    // return result;
   } else {
     var fontArray = allFonts.trim().split("@font-face"),
       filteredArray = fontArray.filter((n) => !!n && n.includes("font-family"));
@@ -80,23 +79,30 @@ function findLatinTags(fonts = "") {
   }
   /* Check for Latin fonts */
   // console.log("fonts in findLatinTags:", fonts);
-  var languagesRegex = /([\/+\*+\s+\w\-\s+\*+\/+\s*]*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
-    extractedContent = fonts.match(languagesRegex);
+  var languagesRegex = /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
+    extractedContent = fonts.match(languagesRegex),
+    removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&#]+})/gi;
   // console.log("extractedContent in findLatinTags(): ", extractedContent);
   var allFonts = "";
   /* IF THERE ARE FONTS WITH LANGUAGE TAGS, SAVE ONLY THE LATIN ONES, AND REMOVE THE TAG */
   for (var result of extractedContent) {
+    // console.log("In extractedContent loop. Current font: ", result);
     if (result.includes("/*")) {
       if (result.includes("latin") && !result.includes("-ext")) {
-        allFonts += result;
+        console.log("We will keep this one: ", result);
+        console.log("Let's take the language tag off now instead of waiting.");
+        var resultNoTag = result.match(removeTagRegex);
+        console.log(resultNoTag);
+        allFonts += resultNoTag[0];
       }
     } else {
+      console.log("No language detected, so we will keep this, too.");
       allFonts += result;
     }
   }
-  var removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&#]+})/gi;
-  var allFontsTagRemoved = allFonts.match(removeTagRegex);
-  return allFontsTagRemoved.join();
+  console.log("Now let's see what string we are passing along: ", allFonts);
+  // var allFontsTagRemoved = allFonts.match(removeTagRegex);
+  return allFonts;
 }
 
 function extractFont(fontFace = "") {
@@ -160,8 +166,8 @@ function extractFont(fontFace = "") {
 
   declaration = declarationStart + declarationEnd;
   // console.log("Declaration before removing double semicolons: ", declaration);
-  declaration = declaration.replace(/;\s*;/g, ";");
-  declaration = declaration.replace(/;[\s,]*}/g, ";\n}");
+  // declaration = declaration.replace(/;\s*;/g, ";");
+  // declaration = declaration.replace(/;[\s,]*}/g, ";\n}");
   // console.log("Declaration after removing double semicolons & other extra punctuation: ", declaration);
 
   // console.log(
@@ -348,9 +354,7 @@ async function base64Converter(url = "") {
   } else {
     console.log("URL:", url);
     await fetch(url)
-      .then((response) => {
-        response.blob();
-      })
+      .then((response) => response.blob())
       .then((font) => {
         const reader = new FileReader();
         reader.onload = function () {
@@ -366,7 +370,6 @@ async function base64Converter(url = "") {
         base64Error.innerText =
           "Looks like this URL isn't working. Please try a different URL or skip this font.";
         base64Btn.disabled = true;
-        // base64Btn.style.backgroundColor = wkndSand;
         base64Btn.style.opacity = ".5";
       });
   }
@@ -413,12 +416,14 @@ function skipFont() {
   }
 
   if (!stylesheetIterationActive) {
-    console.error("There is no font to skip.")
+    console.error("There is no font to skip.");
   } else if (currentStep + 1 < lastStep) {
-    currentStep++
+    currentStep++;
     $fontFaceTextField.val(fontList[currentStep].declaration);
     $fontFaceTextField.trigger("input");
-    counterText.innerText = `Stylesheet iteration active: ${currentStep + 1} of ${lastStep}`;
+    counterText.innerText = `Stylesheet iteration active: ${
+      currentStep + 1
+    } of ${lastStep}`;
   } else {
     console.log("Stopping iteration");
     stopIteration();
@@ -428,98 +433,90 @@ function skipFont() {
 
 /* DEFINE APP ELEMENTS */
 var weightError = document.createElement("p"),
-  stackError = document.createElement("p"),
   sourceError = document.createElement("p"),
   base64Error = document.createElement("p"),
-  skipFontBtn = document.createElement("button"),
-  stylesheetHelperBtn = document.createElement("button"),
-  stylesheetAbortBtn = document.createElement("button"),
+  stackError = document.createElement("p"),
+  counterText = document.createElement("h5"),
+  stylesheetButtonsDiv = document.createElement("div"),
   stylesheetShroud = document.createElement("div"),
+  runningNoticeDiv = document.createElement("div"),
   stylesheetDiv = document.createElement("div"),
+  counterDiv = document.createElement("div"),
+  stylesheetHelperBtn = document.createElement("button"),
+  stylesheetSubmitBtn = document.createElement("button"),
+  stylesheetAbortBtn = document.createElement("button"),
+  stylesheetCloseBtn = document.createElement("button"),
+  skipFontBtn = document.createElement("button"),
+  base64Btn = document.createElement("button"),
   stylesheetTextElement = document.createElement("textarea"),
   stylesheetTextElementLabel = document.createElement("label"),
-  stylesheetSubmitBtn = document.createElement("button"),
-  stylesheetCloseBtn = document.createElement("button"),
   logoImg = document.createElement("img"),
-  runningNoticeDiv = document.createElement("div"),
   noticeSpan = document.createElement("span"),
   logoBlueURL = "https://i.ibb.co/JR9sbFN/fontastic-logo-blue.png",
-  counterDiv = document.createElement("div"),
-  counterText = document.createElement("h5"),
-  base64Btn = document.createElement("button"),
-  stylesheetButtonsDiv = document.createElement("div");
+  fontasticButtons = [
+    skipFontBtn,
+    stylesheetAbortBtn,
+    stylesheetCloseBtn,
+    stylesheetHelperBtn,
+    stylesheetSubmitBtn,
+    base64Btn,
+  ],
+  fontasticErrors = [stackError, weightError, sourceError, base64Error];
 
-counterDiv.className = "fontastic_counter_container";
-counterText.className = "fontastic_counter_text";
-counterText.style.marginTop = "-25px";
-counterText.style.marginBottom = "10px";
-counterText.style.fontSize = "16px";
-counterText.style.fontWeight = "bold";
-counterText.style.color = wkndGreen;
+/* ERROR STYLES */
+for (var error of fontasticErrors) {
+  error.style.color = errorTextColor;
+  error.style.fontSize = errorTextFontSize;
+  error.style.fontStyle = "italic";
+  error.style.textAlign = "right";
+  error.style.margin = "0";
+}
 
 weightError.className = "weight_error_text";
-weightError.style.color = errorTextColor;
-weightError.style.fontSize = errorTextFontSize;
-weightError.style.fontStyle = "italic";
-weightError.style.textAlign = "right";
-weightError.style.margin = "0";
-
 stackError.className = "stack_error_text";
-stackError.style.color = errorTextColor;
-stackError.style.fontSize = errorTextFontSize;
-stackError.style.fontStyle = "italic";
-stackError.style.textAlign = "right";
-stackError.style.margin = "0";
-
 sourceError.className = "source_error_text";
-sourceError.style.color = errorTextColor;
-sourceError.style.fontSize = errorTextFontSize;
-sourceError.style.fontStyle = "italic";
-sourceError.style.textAlign = "right";
-sourceError.style.margin = "0";
-
 base64Error.className = "base64_error_text";
-base64Error.style.color = errorTextColor;
-base64Error.style.fontSize = errorTextFontSize;
-base64Error.style.fontStyle = "italic";
-base64Error.style.textAlign = "right";
 base64Error.style.width = "98%";
-base64Error.style.marginBottom = "0";
+base64Error.style.marginTop = "10px";
+
+/* BUTTON STYLES */
+for (var button of fontasticButtons) {
+  button.style.color = white;
+  button.style.fontWeight = "bold";
+  button.style.fontSize = buttonFontSize;
+  button.style.height = buttonHeight;
+  button.style.margin = "10px auto";
+  button.style.padding = "0 20px";
+  button.style.border = "none";
+  button.style.outlineOffset = "2px";
+  button.style.opacity = "1";
+}
+
+stylesheetSubmitBtn.className = "fontastic_stylesheet_submit_button";
+stylesheetSubmitBtn.innerText = "Let's give it a go!";
+stylesheetSubmitBtn.style.backgroundColor = white;
+stylesheetSubmitBtn.style.color = wkndDarkBlue;
+stylesheetSubmitBtn.style.outlineColor = wkndGreen;
+
+stylesheetCloseBtn.className = "close_stylesheet";
+stylesheetCloseBtn.innerText = "Close";
+stylesheetCloseBtn.style.backgroundColor = white;
+stylesheetCloseBtn.style.color = wkndLightBlue;
+stylesheetCloseBtn.style.outlineColor = wkndRed;
 
 stylesheetHelperBtn.className = "stylesheet_helper_button";
 stylesheetHelperBtn.innerText = "Let's try a whole stylesheet!";
-stylesheetHelperBtn.style.color = white;
-stylesheetHelperBtn.style.fontWeight = "bold";
-stylesheetHelperBtn.style.fontSize = buttonFontSize;
 stylesheetHelperBtn.style.backgroundColor = wkndLightBlue;
-stylesheetHelperBtn.style.height = buttonHeight;
-stylesheetHelperBtn.style.margin = "10px auto";
-stylesheetHelperBtn.style.padding = "0 20px";
-stylesheetHelperBtn.style.border = "none";
 
 base64Btn.className = "fontastic_b64_button";
 base64Btn.innerText = "Get base64";
-base64Btn.style.color = white;
-base64Btn.style.fontWeight = "bold";
-base64Btn.style.fontSize = buttonFontSize;
-base64Btn.style.fontSize = "12px";
 base64Btn.style.backgroundColor = wkndGreen;
-base64Btn.style.opacity = "1";
-base64Btn.style.height = buttonHeight;
-base64Btn.style.margin = "10px auto";
-base64Btn.style.padding = "0 10px";
-base64Btn.style.border = "none";
+base64Btn.style.padding = "0 15px";
 
 stylesheetAbortBtn.className = "stylesheet_abort_button";
 stylesheetAbortBtn.innerText = "Clear stylesheet";
-stylesheetAbortBtn.style.color = white;
-stylesheetAbortBtn.style.fontWeight = "bold";
-stylesheetAbortBtn.style.fontSize = buttonFontSize;
 stylesheetAbortBtn.style.backgroundColor = wkndBrown;
-stylesheetAbortBtn.style.height = buttonHeight;
 stylesheetAbortBtn.style.margin = "10px 5px";
-stylesheetAbortBtn.style.padding = "0 20px";
-stylesheetAbortBtn.style.border = "none";
 stylesheetAbortBtn.onclick = function () {
   stopIteration();
   jQuery(".bx-modal_close").click();
@@ -528,17 +525,19 @@ stylesheetAbortBtn.onclick = function () {
 skipFontBtn.className = "fontastic_skip_font";
 skipFontBtn.innerText = "Skip Font";
 skipFontBtn.style.backgroundColor = wkndRed;
-skipFontBtn.style.color = white;
-skipFontBtn.style.fontWeight = "bold";
-skipFontBtn.style.fontSize = buttonFontSize;
-skipFontBtn.style.height = buttonHeight;
 skipFontBtn.style.margin = "10px 5px";
-skipFontBtn.style.padding = "0 20px";
-skipFontBtn.style.border = "none";
 skipFontBtn.onclick = function () {
   console.log("Skip font activated");
   skipFont();
 };
+
+counterDiv.className = "fontastic_counter_container";
+counterText.className = "fontastic_counter_text";
+counterText.style.marginTop = "-25px";
+counterText.style.marginBottom = "10px";
+counterText.style.fontSize = "16px";
+counterText.style.fontWeight = "bold";
+counterText.style.color = wkndGreen;
 
 stylesheetShroud.className = "fontastic_shroud";
 stylesheetShroud.style.position = "absolute";
@@ -584,26 +583,6 @@ stylesheetTextElementLabel.style.marginBottom = "20px";
 stylesheetTextElementLabel.style.fontSize = "18px";
 stylesheetTextElementLabel.style.fontWeight = "600";
 
-stylesheetSubmitBtn.innerText = "Let's give it a go!";
-stylesheetSubmitBtn.style.padding = "10px";
-stylesheetSubmitBtn.style.fontWeight = "bold";
-stylesheetSubmitBtn.style.backgroundColor = white;
-stylesheetSubmitBtn.style.color = wkndLightBlue;
-stylesheetSubmitBtn.style.outlineOffset = "2px";
-stylesheetSubmitBtn.style.outlineColor = wkndGreen;
-stylesheetSubmitBtn.style.border = "none";
-
-stylesheetCloseBtn.className = "close_stylesheet";
-stylesheetCloseBtn.innerText = "Close";
-stylesheetCloseBtn.style.marginTop = "10px";
-stylesheetCloseBtn.style.padding = "10px";
-stylesheetCloseBtn.style.fontWeight = "bold";
-stylesheetCloseBtn.style.backgroundColor = white;
-stylesheetCloseBtn.style.color = wkndLightBlue;
-stylesheetCloseBtn.style.border = "none";
-stylesheetCloseBtn.style.outlineColor = wkndRed;
-stylesheetCloseBtn.style.outlineOffset = "2px";
-
 runningNoticeDiv.className = "fontastic_logo_container";
 runningNoticeDiv.style.backgroundColor = black;
 runningNoticeDiv.style.color = white;
@@ -643,7 +622,6 @@ function fontastic() {
         .find("div.slat:not(.slat__taller):has('textarea:last()') label")
         .append(base64Btn);
       base64Btn.disabled = true;
-      // base64Btn.style.backgroundColor = wkndSand;
       base64Btn.style.opacity = ".5";
     }
     if (!jQuery(".fontastic_counter_container").length) {
@@ -656,7 +634,9 @@ function fontastic() {
       } of ${lastStep}`;
       counterText.style.color = wkndGreen;
       $fontFaceTextField.val(fontList[currentStep].declaration);
-      $fontFaceTextField.trigger("input");
+      if (currentStep > 0) {
+        $fontFaceTextField.trigger("input");
+      }
     } else {
       counterText.innerText = "Stylesheet not active";
       counterText.style.color = wkndDarkBlue;
@@ -796,7 +776,6 @@ function fontastic() {
             base64Converter(sourceInput.val());
           };
           base64Btn.disabled = false;
-          // base64Btn.style.backgroundColor = wkndGreen;
           base64Btn.style.opacity = "1";
           $(this)
             .children("input")
@@ -809,12 +788,10 @@ function fontastic() {
                 font.updatedURL = e.target.value;
                 currentSource = e.target.value;
                 base64Btn.disabled = false;
-                // base64Btn.style.backgroundColor = wkndGreen;
                 base64Btn.style.opacity = "1";
               } else {
                 sourceError.innerText = "Please enter a valid URL.";
                 base64Btn.disabled = false;
-                // base64Btn.style.backgroundColor = wkndSand;
                 base64Btn.style.opacity = ".5";
               }
               font.declaration.includes("woff2")
@@ -835,12 +812,10 @@ function fontastic() {
               if (!urlRegex.exec(sourceInput.val())) {
                 sourceError.innerText = "Please enter a valid URL";
                 base64Btn.disabled = true;
-                // base64Btn.style.backgroundColor = wkndSand;
                 base64Btn.style.opacity = ".5";
               } else {
                 sourceError.innerText = "";
                 base64Btn.disabled = false;
-                // base64Btn.style.backgroundColor = wkndGreen;
                 base64Btn.style.opacity = "1";
               }
             });
@@ -887,6 +862,6 @@ jQuery(".bare-btn.bare-btn__text").on("click", function () {
   setTimeout(fontastic, 100);
 });
 
-/* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET */
+/* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET - completed 3/11/22 */
 /* FOR FONTS WITH PARTIAL URLS, PULL IN URL PREFIX TO IDENTICAL FAMILY NAMES */
-/* WHAT IF DECLARATION IS MISSING CLOSING SEMICOLON? ADD FIX TO extractFont() PLEASE - fixed 3/11/22*/
+/* WHAT IF DECLARATION IS MISSING CLOSING SEMICOLON? ADD FIX TO extractFont() PLEASE - fixed 3/11/22 */
