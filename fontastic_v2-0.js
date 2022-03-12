@@ -89,18 +89,18 @@ function findLatinTags(fonts = "") {
     // console.log("In extractedContent loop. Current font: ", result);
     if (result.includes("/*")) {
       if (result.includes("latin") && !result.includes("-ext")) {
-        console.log("We will keep this one: ", result);
-        console.log("Let's take the language tag off now instead of waiting.");
+        // console.log("We will keep this one: ", result);
+        // console.log("Let's take the language tag off now instead of waiting.");
         var resultNoTag = result.match(removeTagRegex);
-        console.log(resultNoTag);
+        // console.log(resultNoTag);
         allFonts += resultNoTag[0];
       }
     } else {
-      console.log("No language detected, so we will keep this, too.");
+      // console.log("No language detected, so we will keep this, too.");
       allFonts += result;
     }
   }
-  console.log("Now let's see what string we are passing along: ", allFonts);
+  // console.log("Now let's see what string we are passing along: ", allFonts);
   // var allFontsTagRemoved = allFonts.match(removeTagRegex);
   return allFonts;
 }
@@ -165,20 +165,11 @@ function extractFont(fontFace = "") {
   }
 
   declaration = declarationStart + declarationEnd;
-  // console.log("Declaration before removing double semicolons: ", declaration);
-  // declaration = declaration.replace(/;\s*;/g, ";");
-  // declaration = declaration.replace(/;[\s,]*}/g, ";\n}");
-  // console.log("Declaration after removing double semicolons & other extra punctuation: ", declaration);
 
-  // console.log(
-  //   "simplifiedFont.match(sourceRegex) in extractFont(): ",
-  //   simplifiedFont.match(sourceRegex)
-  // );
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
     source = determineSrc(simplifiedFont.match(sourceRegex).join());
-    // console.log("source in extractFont():", source);
     declaredURL = source.url;
     url = source.url;
     prefix = source.prefix;
@@ -348,11 +339,11 @@ function stopIteration() {
 
 /* <3 Huge help from Triona, Nyssa, and https://pqina.nl/blog/convert-a-file-to-a-base64-string-with-javascript/ */
 async function base64Converter(url = "") {
-  console.log("Running base64Converter...");
+  // console.log("Running base64Converter...");
   if (!url) {
     console.log("No URL found in base64Converter.");
   } else {
-    console.log("URL:", url);
+    // console.log("URL:", url);
     await fetch(url)
       .then((response) => response.blob())
       .then((font) => {
@@ -409,9 +400,9 @@ function showFinale(image = ohHiMarch) {
 }
 
 function skipFont() {
-  console.log("skipFont() running...");
-  console.log("Current step: ", currentStep);
-  console.log("Last step: ", lastStep);
+  // console.log("skipFont() running...");
+  // console.log("Current step: ", currentStep);
+  // console.log("Last step: ", lastStep);
   if (!$fontFaceTextField) {
     var $fontFaceTextField = jQuery("textarea:first()");
   }
@@ -493,6 +484,8 @@ for (var button of fontasticButtons) {
   button.style.opacity = "1";
 }
 
+stylesheetButtonsDiv.className = "fontastic_button_div";
+
 stylesheetSubmitBtn.className = "fontastic_stylesheet_submit_button";
 stylesheetSubmitBtn.innerText = "Let's give it a go!";
 stylesheetSubmitBtn.style.backgroundColor = white;
@@ -528,7 +521,6 @@ skipFontBtn.innerText = "Skip Font";
 skipFontBtn.style.backgroundColor = wkndRed;
 skipFontBtn.style.margin = "10px 5px";
 skipFontBtn.onclick = function () {
-  console.log("Skip font activated");
   skipFont();
 };
 
@@ -607,8 +599,8 @@ noticeSpan.style.fontWeight = "600";
 noticeSpan.style.fontSize = "10px";
 
 function fontastic() {
-  var $fontModal = jQuery(".bx-modal_container .mint-theme.ember-view"),
-    $fontModalContainer = jQuery(".bx-modal_container"),
+  var $fontModalContainer = jQuery(".bx-modal_container"),
+    $fontModal = jQuery(".bx-modal_container .mint-theme.ember-view"),
     $fontFaceTextField = $fontModal.find(
       ".font-input.ember-text-area:not('.input-wrap_input')"
     ),
@@ -630,6 +622,8 @@ function fontastic() {
       $fontModalContainer.prepend(counterDiv);
     }
     if (stylesheetIterationActive) {
+      stylesheetButtonsDiv.innerHTML = "";
+      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
       counterText.innerText = `Stylesheet active. Font ${
         currentStep + 1
       } of ${lastStep}`;
@@ -639,18 +633,13 @@ function fontastic() {
         $fontFaceTextField.trigger("input");
       }
     } else {
+      stylesheetButtonsDiv.innerHTML = "";
+      stylesheetButtonsDiv.append(stylesheetHelperBtn);
       counterText.innerText = "Stylesheet not active";
       counterText.style.color = wkndDarkBlue;
     }
-  }
-
-  if (!jQuery(".stylesheet_helper_button").length) {
-    if (stylesheetIterationActive) {
-      $fontModalContainer.children("[id*='ember']").append("<br>");
-      $fontModalContainer.children("[id*='ember']").append(stylesheetAbortBtn);
-    } else {
-      $fontModalContainer.children("[id*='ember']").append("<br>");
-      $fontModalContainer.children("[id*='ember']").append(stylesheetHelperBtn);
+    if (!jQuery(".fontastic_button_div").length) {
+      $fontModalContainer.children("[id*='ember']").append(stylesheetButtonsDiv);
     }
   }
 
@@ -691,14 +680,19 @@ function fontastic() {
     counterText.style.color = wkndGreen;
     stylesheetTextElement.value = "";
     jQuery(".close_stylesheet").click();
+    $(".bare-btn.bare-btn__text").text(
+      `Next font (${currentStep + 1} of ${lastStep})`
+    );
     $fontFaceTextField.val(fontList[currentStep].declaration);
     $fontFaceTextField.trigger("input");
     if (jQuery(".stylesheet_helper_button").length) {
       jQuery(".stylesheet_helper_button").remove();
       stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
-      $fontModalContainer
-        .children("[id*='ember']")
-        .append(stylesheetButtonsDiv);
+      if (!jQuery().length) {
+        $fontModalContainer
+          .children("[id*='ember']")
+          .append(stylesheetButtonsDiv);
+      }
     }
   };
 
@@ -862,9 +856,7 @@ function fontastic() {
 }
 fontastic();
 jQuery(".bare-btn.bare-btn__text").on("click", function () {
-  setTimeout(fontastic, 100);
+  setTimeout(fontastic, 10);
 });
 
-/* WORK ON "SKIP FONT" BUTTON IN CASE YOU FIND A FONT YOU DON'T NEED IN THE MIDDLE OF A STYLESHEET - completed 3/11/22 */
 /* FOR FONTS WITH PARTIAL URLS, PULL IN URL PREFIX TO IDENTICAL FAMILY NAMES */
-/* WHAT IF DECLARATION IS MISSING CLOSING SEMICOLON? ADD FIX TO extractFont() PLEASE - fixed 3/11/22 */
