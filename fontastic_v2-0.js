@@ -44,14 +44,16 @@ function getFonts(allFonts = "") {
   if (!allFonts) {
     throw Error("No font face detected in getFonts().");
   } else {
-    var fontArray = allFonts.trim().split("@font-face"),
-      filteredArray = fontArray.filter((n) => !!n && n.includes("font-family"));
+    // var fontArray = allFonts.trim().split("@font-face"),
+      // filteredArray = allFonts.filter((n) => !!n && n.includes("font-family"));
+    allFonts = allFonts.filter((n) => !!n && n.includes("font-family"));
+    console.log("allFonts in getFonts(): ", allFonts);
     // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
-    for (var font of filteredArray) {
+    for (var font of allFonts) {
       var fontObject = extractFont(font);
-      if (fontObject.style === "italic" || fontObject.style === "oblique") {
+      // if (fontObject.style === "italic" || fontObject.style === "oblique") {
         // TRY THE CONDITION BELOW INSTEAD
-        // if (fontObject.style !== "normal") {
+        if (fontObject.style !== "normal") {
         var filter = result.filter(
           (element) => element.family === fontObject.family
         );
@@ -69,39 +71,25 @@ function getFonts(allFonts = "") {
       }
     }
   }
-  // console.log("Font list in getFonts(): ", result);
   return result;
 }
 
 function findLatinTags(fonts = "") {
   if (!fonts) {
-    return;
+    return [];
   }
-  /* Check for Latin fonts */
-  // console.log("fonts in findLatinTags:", fonts);
   var languagesRegex = /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
-    extractedContent = fonts.match(languagesRegex),
-    removeTagRegex = /@font-face\s*({[\w\d\s:';\-\/.+,()%_"=?&#]+})/gi;
-  // console.log("extractedContent in findLatinTags(): ", extractedContent);
-  var allFonts = "";
-  /* IF THERE ARE FONTS WITH LANGUAGE TAGS, SAVE ONLY THE LATIN ONES, AND REMOVE THE TAG */
+    extractedContent = fonts.matchAll(languagesRegex),
+    allFonts = [];
   for (var result of extractedContent) {
-    // console.log("In extractedContent loop. Current font: ", result);
-    if (result.includes("/*")) {
-      if (result.includes("latin") && !result.includes("-ext")) {
-        // console.log("We will keep this one: ", result);
-        // console.log("Let's take the language tag off now instead of waiting.");
-        var resultNoTag = result.match(removeTagRegex);
-        // console.log(resultNoTag);
-        allFonts += resultNoTag[0];
-      }
-    } else {
-      // console.log("No language detected, so we will keep this, too.");
-      allFonts += result;
+    if (!result[1]) {
+      // If there is no language tag, add the font
+      allFonts.push(result[2])
+    } else if (result[1].includes("latin") && !result[1].includes("-ext")) {
+      // If the language tag is latin and not latin-ext, add the font
+      allFonts.push(result[2])
     }
   }
-  // console.log("Now let's see what string we are passing along: ", allFonts);
-  // var allFontsTagRemoved = allFonts.match(removeTagRegex);
   return allFonts;
 }
 
@@ -125,12 +113,14 @@ function extractFont(fontFace = "") {
     declaration = "@font-face " + fontFace.trim(),
     declarationStart = declaration.slice(0, -2).trim(),
     declarationEnd = declaration.slice(-1);
-
+    
+  console.log("declaration inside extractFont() before adding style/weight: ", declaration);
+  
   if (simplifiedFont.match(weightRegex)) {
     weightExtract = weightRegex.exec(simplifiedFont);
     weight = parseInt(weightExtract[1])
-      ? parseInt(weightExtract[1])
-      : weightExtract[1];
+    ? parseInt(weightExtract[1])
+    : weightExtract[1];
     declaredWeight = weight;
   } else {
     weight = "normal";
@@ -145,7 +135,7 @@ function extractFont(fontFace = "") {
       declarationStart += "\nfont-weight: normal;\n";
     }
   }
-
+  
   if (simplifiedFont.match(styleRegex)) {
     styleExtract = styleRegex.exec(simplifiedFont);
     style = styleExtract[1];
@@ -163,9 +153,10 @@ function extractFont(fontFace = "") {
       declarationStart += "\nfont-style: normal;\n";
     }
   }
-
+  
   declaration = declarationStart + declarationEnd;
-
+  console.log("declaration inside extractFont() after adding style/weight: ", declaration);
+  
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
