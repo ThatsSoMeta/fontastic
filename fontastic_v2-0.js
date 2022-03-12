@@ -362,6 +362,7 @@ async function base64Converter(url = "") {
             .replace("data:", "")
             .replace(/^.+,/, "");
           jQuery("textarea:last()").val(prefix + base64String);
+          jQuery("textarea:last()").trigger("input");
         };
         reader.readAsDataURL(font);
       })
@@ -743,6 +744,7 @@ function fontastic() {
           }
           if (fontList[currentStep] && fontList[currentStep].stack) {
             $(this).children("input").val(fontList[currentStep].stack);
+            $(this).children("input").trigger("input");
           } else {
             if (font.family.includes(" ")) {
               $(this).children("input").val(`"${font.family}",`);
@@ -769,6 +771,7 @@ function fontastic() {
         } else if ($(this).children("label").text() == "Reference URL") {
           var sourceInput = $(this).children("input");
           sourceInput.val(font.src);
+          sourceInput.trigger("input");
           if (!jQuery(".source_error_text").length) {
             $(this).append(sourceError);
           }
