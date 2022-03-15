@@ -834,7 +834,6 @@ function fontastic() {
 
   $fontFaceTextField.trigger("input");
 
-  /* LOGIC FOR STYLESHEET ITERATION */
   stylesheetHelperBtn.onclick = function () {
     if (!$(".stylesheet_helper_container").length) {
       stylesheetDiv.append(stylesheetTextElementLabel);
@@ -860,5 +859,3 @@ fontastic();
 $(".bare-btn.bare-btn__text").on("click", function () {
   setTimeout(fontastic, 10);
 });
-
-/* FOR FONTS WITH PARTIAL URLS, PULL IN URL PREFIX TO IDENTICAL FAMILY NAMES */
