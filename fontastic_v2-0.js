@@ -44,16 +44,12 @@ function getFonts(allFonts = "") {
   if (!allFonts) {
     throw Error("No font face detected in getFonts().");
   } else {
-    // var fontArray = allFonts.trim().split("@font-face"),
-      // filteredArray = allFonts.filter((n) => !!n && n.includes("font-family"));
     allFonts = allFonts.filter((n) => !!n && n.includes("font-family"));
-    console.log("allFonts in getFonts(): ", allFonts);
+    // console.log("allFonts in getFonts(): ", allFonts);
     // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
     for (var font of allFonts) {
       var fontObject = extractFont(font);
-      // if (fontObject.style === "italic" || fontObject.style === "oblique") {
-        // TRY THE CONDITION BELOW INSTEAD
-        if (fontObject.style !== "normal") {
+      if (fontObject.style !== "normal") {
         var filter = result.filter(
           (element) => element.family === fontObject.family
         );
@@ -84,10 +80,10 @@ function findLatinTags(fonts = "") {
   for (var result of extractedContent) {
     if (!result[1]) {
       // If there is no language tag, add the font
-      allFonts.push(result[2])
+      allFonts.push(result[2]);
     } else if (result[1].includes("latin") && !result[1].includes("-ext")) {
       // If the language tag is latin and not latin-ext, add the font
-      allFonts.push(result[2])
+      allFonts.push(result[2]);
     }
   }
   return allFonts;
@@ -113,14 +109,17 @@ function extractFont(fontFace = "") {
     declaration = "@font-face " + fontFace.trim(),
     declarationStart = declaration.slice(0, -2).trim(),
     declarationEnd = declaration.slice(-1);
-    
-  console.log("declaration inside extractFont() before adding style/weight: ", declaration);
-  
+
+  // console.log(
+  //   "declaration inside extractFont() before adding style/weight: ",
+  //   declaration
+  // );
+
   if (simplifiedFont.match(weightRegex)) {
     weightExtract = weightRegex.exec(simplifiedFont);
     weight = parseInt(weightExtract[1])
-    ? parseInt(weightExtract[1])
-    : weightExtract[1];
+      ? parseInt(weightExtract[1])
+      : weightExtract[1];
     declaredWeight = weight;
   } else {
     weight = "normal";
@@ -135,7 +134,7 @@ function extractFont(fontFace = "") {
       declarationStart += "\nfont-weight: normal;\n";
     }
   }
-  
+
   if (simplifiedFont.match(styleRegex)) {
     styleExtract = styleRegex.exec(simplifiedFont);
     style = styleExtract[1];
@@ -153,10 +152,13 @@ function extractFont(fontFace = "") {
       declarationStart += "\nfont-style: normal;\n";
     }
   }
-  
+
   declaration = declarationStart + declarationEnd;
-  console.log("declaration inside extractFont() after adding style/weight: ", declaration);
-  
+  // console.log(
+  //   "declaration inside extractFont() after adding style/weight: ",
+  //   declaration
+  // );
+
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
@@ -209,7 +211,7 @@ function extractSourceURL(src = "") {
 
   // console.log("Format in extractSourceURL(): ", format);
   var sourceURLRegex = new RegExp(
-      String.raw`url\(['"]?([\w\d:\/\-.&%#$_=]*)['"]?\)\s*format\(['"]?${format}['"]?\)`,
+      String.raw`url\(['"]?([\w\d\s:\/\-.&%#$_=]*)['"]?\)(\s*format\(['"]?[\s\w-]+['"]?\))?`,
       "gi"
     ),
     prefix = `data:application/x-font-${format};base64,`;
@@ -326,6 +328,9 @@ function stopIteration() {
   lastStep = fontList.length;
   stylesheetIterationActive = false;
   $(".bare-btn.bare-btn__text").text(`New Font`);
+  $(".bare-btn.bare-btn__text").on("click", function () {
+    setTimeout(fontastic, 10);
+  });
 }
 
 /* <3 Huge help from Triona, Nyssa, and https://pqina.nl/blog/convert-a-file-to-a-base64-string-with-javascript/ */
@@ -343,8 +348,8 @@ async function base64Converter(url = "") {
           const base64String = reader.result
             .replace("data:", "")
             .replace(/^.+,/, "");
-          jQuery("textarea:last()").val(prefix + base64String);
-          jQuery("textarea:last()").trigger("input");
+          $("textarea:last()").val(prefix + base64String);
+          $("textarea:last()").trigger("input");
         };
         reader.readAsDataURL(font);
       })
@@ -359,7 +364,7 @@ async function base64Converter(url = "") {
 }
 
 function showFinale(image = ohHiMarch) {
-  if (!jQuery(".fontastic_finale").length) {
+  if (!$(".fontastic_finale").length) {
     var finaleContainer = document.createElement("div"),
       finaleImg = document.createElement("img"),
       finaleShroud = document.createElement("div");
@@ -367,7 +372,7 @@ function showFinale(image = ohHiMarch) {
     finaleImg.src = image;
     finaleImg.style.cursor = "pointer";
     finaleImg.onclick = function () {
-      jQuery(".fontastic_finale").remove();
+      $(".fontastic_finale").remove();
     };
 
     finaleShroud.className = "fontastic_finale";
@@ -384,18 +389,15 @@ function showFinale(image = ohHiMarch) {
 
     finaleContainer.append(finaleImg);
     finaleShroud.append(finaleContainer);
-    jQuery("body").append(finaleShroud);
+    $("body").append(finaleShroud);
   } else {
-    jQuery(".fontastic_finale").remove();
+    $(".fontastic_finale").remove();
   }
 }
 
 function skipFont() {
-  // console.log("skipFont() running...");
-  // console.log("Current step: ", currentStep);
-  // console.log("Last step: ", lastStep);
   if (!$fontFaceTextField) {
-    var $fontFaceTextField = jQuery("textarea:first()");
+    var $fontFaceTextField = $("textarea:first()");
   }
 
   if (!stylesheetIterationActive) {
@@ -410,7 +412,7 @@ function skipFont() {
   } else {
     console.log("Stopping iteration");
     stopIteration();
-    jQuery(".bx-modal_close").click();
+    $(".bx-modal_close").click();
   }
 }
 
@@ -428,7 +430,7 @@ var weightError = document.createElement("p"),
   stylesheetHelperBtn = document.createElement("button"),
   stylesheetSubmitBtn = document.createElement("button"),
   stylesheetAbortBtn = document.createElement("button"),
-  stylesheetCloseBtn = document.createElement("button"),
+  stylesheetCancelBtn = document.createElement("button"),
   skipFontBtn = document.createElement("button"),
   base64Btn = document.createElement("button"),
   stylesheetTextElement = document.createElement("textarea"),
@@ -439,7 +441,7 @@ var weightError = document.createElement("p"),
   fontasticButtons = [
     skipFontBtn,
     stylesheetAbortBtn,
-    stylesheetCloseBtn,
+    stylesheetCancelBtn,
     stylesheetHelperBtn,
     stylesheetSubmitBtn,
     base64Btn,
@@ -479,22 +481,20 @@ stylesheetButtonsDiv.className = "fontastic_button_div";
 
 stylesheetSubmitBtn.className = "fontastic_stylesheet_submit_button";
 stylesheetSubmitBtn.innerText = "Let's give it a go!";
-stylesheetSubmitBtn.style.backgroundColor = white;
-stylesheetSubmitBtn.style.color = wkndDarkBlue;
-stylesheetSubmitBtn.style.outlineColor = wkndGreen;
+stylesheetSubmitBtn.style.backgroundColor = wkndGreen;
+stylesheetSubmitBtn.style.outlineColor = white;
 
-stylesheetCloseBtn.className = "close_stylesheet";
-stylesheetCloseBtn.innerText = "Close";
-stylesheetCloseBtn.style.backgroundColor = white;
-stylesheetCloseBtn.style.color = wkndLightBlue;
-stylesheetCloseBtn.style.outlineColor = wkndRed;
+stylesheetCancelBtn.className = "close_stylesheet";
+stylesheetCancelBtn.innerText = "Cancel";
+stylesheetCancelBtn.style.backgroundColor = wkndRed;
+stylesheetCancelBtn.style.outlineColor = white;
 
 stylesheetHelperBtn.className = "stylesheet_helper_button";
 stylesheetHelperBtn.innerText = "Let's try a whole stylesheet!";
 stylesheetHelperBtn.style.backgroundColor = wkndLightBlue;
 
 base64Btn.className = "fontastic_b64_button";
-base64Btn.innerText = "Get base64";
+base64Btn.innerText = "Get Base64";
 base64Btn.style.backgroundColor = wkndGreen;
 base64Btn.style.padding = "0 15px";
 
@@ -504,7 +504,7 @@ stylesheetAbortBtn.style.backgroundColor = wkndBrown;
 stylesheetAbortBtn.style.margin = "10px 5px";
 stylesheetAbortBtn.onclick = function () {
   stopIteration();
-  jQuery(".bx-modal_close").click();
+  $(".bx-modal_close").click();
 };
 
 skipFontBtn.className = "fontastic_skip_font";
@@ -530,7 +530,8 @@ stylesheetShroud.style.left = "0";
 stylesheetShroud.style.width = "100vw";
 stylesheetShroud.style.height = "100vh";
 stylesheetShroud.style.zIndex = "9999999";
-stylesheetShroud.style.backgroundColor = "rgba(0,0,0,.7)";
+// stylesheetShroud.style.backgroundColor = "rgba(0,0,0,.7)";
+stylesheetShroud.style.background = "radial-gradient(rgb(0,0,0) 35%, rgba(0,0,0,.7) 75%)";
 
 stylesheetDiv.className = "stylesheet_helper_container";
 stylesheetDiv.style.width = "600px";
@@ -555,7 +556,7 @@ stylesheetTextElement.style.width = "calc(100% - 20px)";
 stylesheetTextElement.style.border = "none";
 stylesheetTextElement.style.backgroundColor = black;
 stylesheetTextElement.style.color = white;
-stylesheetTextElement.style.outlineColor = wkndGreen;
+stylesheetTextElement.style.outlineColor = white;
 stylesheetTextElement.style.outlineOffset = "2px";
 stylesheetTextElement.style.fontFamily = "monospace";
 stylesheetTextElement.style.fontSize = "16px";
@@ -590,8 +591,8 @@ noticeSpan.style.fontWeight = "600";
 noticeSpan.style.fontSize = "10px";
 
 function fontastic() {
-  var $fontModalContainer = jQuery(".bx-modal_container"),
-    $fontModal = jQuery(".bx-modal_container .mint-theme.ember-view"),
+  var $fontModalContainer = $(".bx-modal_container"),
+    $fontModal = $(".bx-modal_container .mint-theme.ember-view"),
     $fontFaceTextField = $fontModal.find(
       ".font-input.ember-text-area:not('.input-wrap_input')"
     ),
@@ -601,14 +602,14 @@ function fontastic() {
     $fontModalContainer.css("max-height", "99%");
     $fontModalContainer.css("padding-bottom", "10px");
 
-    if (!jQuery(".fontastic_b64_button").length) {
+    if (!$(".fontastic_b64_button").length) {
       $fontModal
         .find("div.slat:not(.slat__taller):has('textarea:last()') label")
         .append(base64Btn);
       base64Btn.disabled = true;
       base64Btn.style.opacity = ".5";
     }
-    if (!jQuery(".fontastic_counter_container").length) {
+    if (!$(".fontastic_counter_container").length) {
       counterDiv.append(counterText);
       $fontModalContainer.prepend(counterDiv);
     }
@@ -629,13 +630,15 @@ function fontastic() {
       counterText.innerText = "Stylesheet not active";
       counterText.style.color = wkndDarkBlue;
     }
-    if (!jQuery(".fontastic_button_div").length) {
-      $fontModalContainer.children("[id*='ember']").append(stylesheetButtonsDiv);
+    if (!$(".fontastic_button_div").length) {
+      $fontModalContainer
+        .children("[id*='ember']")
+        .append(stylesheetButtonsDiv);
     }
   }
 
   /* On font submit */
-  jQuery(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
+  $(".create-btn.flat-btn.flat-btn__primary").on("click", function () {
     if (currentStep + 1 < lastStep) {
       for (var font of fontList) {
         var currentFont = fontList[currentStep];
@@ -659,37 +662,44 @@ function fontastic() {
   var stylesheetInput;
 
   stylesheetSubmitBtn.onclick = function () {
-    stylesheetIterationActive = true;
-    stylesheetInput = stylesheetTextElement.value;
-    stylesheetParsedFonts = getFonts(stylesheetInput);
-    fontList = stylesheetParsedFonts;
+    // var textElement = jQuery("#stylesheet_helper_textarea"),
+    //   textIsValid = textElement.val().includes("@font-face {");
+    // console.log("textIsValid? ", textIsValid);
     lastStep = fontList.length;
-    console.log("I have saved your items, friend: ", fontList);
-    counterText.innerText = `Stylesheet iteration active: ${
-      currentStep + 1
-    } of ${lastStep}`;
-    counterText.style.color = wkndGreen;
-    stylesheetTextElement.value = "";
-    jQuery(".close_stylesheet").click();
-    $(".bare-btn.bare-btn__text").text(
-      `Next font (${currentStep + 1} of ${lastStep})`
-    );
-    $fontFaceTextField.val(fontList[currentStep].declaration);
-    $fontFaceTextField.trigger("input");
-    if (jQuery(".stylesheet_helper_button").length) {
-      jQuery(".stylesheet_helper_button").remove();
-      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
-      if (!jQuery().length) {
-        $fontModalContainer
-          .children("[id*='ember']")
-          .append(stylesheetButtonsDiv);
+    stylesheetInput = stylesheetTextElement.value;
+    if (lastStep > 0) {
+      stylesheetIterationActive = true;
+      stylesheetParsedFonts = getFonts(stylesheetInput);
+      fontList = stylesheetParsedFonts;
+      console.log("I have saved your items, friend: ", fontList);
+      counterText.innerText = `Stylesheet iteration active: ${
+        currentStep + 1
+      } of ${lastStep}`;
+      counterText.style.color = wkndGreen;
+      $(".close_stylesheet").click();
+      $(".bare-btn.bare-btn__text").text(
+        `Next font (${currentStep + 1} of ${lastStep})`
+      );
+      $fontFaceTextField.val(fontList[currentStep].declaration);
+      $fontFaceTextField.trigger("input");
+      stylesheetTextElement.value = "";
+      if ($(".stylesheet_helper_button").length) {
+        $(".stylesheet_helper_button").remove();
+        stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
+        if (!$(".fontastic_button_div").length) {
+          $fontModalContainer
+            .children("[id*='ember']")
+            .append(stylesheetButtonsDiv);
+        }
       }
+    } else {
+      stylesheetTextElement.value = "So, um... there were no fonts there. Do you wanna try that again maybe?";
     }
   };
 
-  stylesheetCloseBtn.onclick = function () {
-    jQuery(".fontastic_shroud").remove();
-    jQuery(".stylesheet_helper_container").remove();
+  stylesheetCancelBtn.onclick = function () {
+    $(".fontastic_shroud").remove();
+    $(".stylesheet_helper_container").remove();
   };
 
   $fontFaceTextField.on("input", function () {
@@ -713,7 +723,7 @@ function fontastic() {
         if ($(this).children("label").text() == "Family") {
           $(this).children("div").text(font.family);
         } else if ($(this).children("label").text() == "Weight") {
-          if (!jQuery(".weight_error_text").length) {
+          if (!$(".weight_error_text").length) {
             $(this).append(weightError);
           }
           if (font.weight !== font.declaredWeight) {
@@ -724,7 +734,7 @@ function fontastic() {
             }
           }
         } else if ($(this).children("label").text() == "Stack") {
-          if (!jQuery(".stack_error_text").length) {
+          if (!$(".stack_error_text").length) {
             $(this).append(stackError);
           }
           if (fontList[currentStep] && fontList[currentStep].stack) {
@@ -757,7 +767,7 @@ function fontastic() {
           var sourceInput = $(this).children("input");
           sourceInput.val(font.src);
           sourceInput.trigger("input");
-          if (!jQuery(".source_error_text").length) {
+          if (!$(".source_error_text").length) {
             $(this).append(sourceError);
           }
           base64Btn.onclick = function () {
@@ -811,10 +821,10 @@ function fontastic() {
           $(this).children("label").text() == "Font" ||
           $(this).children("label").text() == "FontGet base64"
         ) {
-          if (!jQuery(".base64_error_text").length) {
+          if (!$(".base64_error_text").length) {
             $(this).append(base64Error);
           }
-          if (!jQuery(".fontastic_b64_button").length) {
+          if (!$(".fontastic_b64_button").length) {
             $(this).children("label").append(base64Btn);
           }
         }
@@ -826,27 +836,28 @@ function fontastic() {
 
   /* LOGIC FOR STYLESHEET ITERATION */
   stylesheetHelperBtn.onclick = function () {
-    if (!jQuery(".stylesheet_helper_container").length) {
+    if (!$(".stylesheet_helper_container").length) {
       stylesheetDiv.append(stylesheetTextElementLabel);
       stylesheetDiv.append(stylesheetTextElement);
       stylesheetDiv.append(stylesheetSubmitBtn);
-      stylesheetDiv.append(stylesheetCloseBtn);
+      stylesheetDiv.append(stylesheetCancelBtn);
       stylesheetShroud.append(stylesheetDiv);
-      jQuery("body").append(stylesheetShroud);
+      $("body").append(stylesheetShroud);
       stylesheetTextElement.focus();
     }
   };
-  runningNoticeDiv.onclick = function () {
-    showFinale();
-  };
-  if (!jQuery(".fontastic_logo_container").length) {
+  if (!$(".fontastic_logo_container").length) {
     runningNoticeDiv.append(logoImg);
     runningNoticeDiv.append(noticeSpan);
-    jQuery("body").append(runningNoticeDiv);
+    $("body").append(runningNoticeDiv);
+          runningNoticeDiv.onclick = function () {
+            showFinale();
+            fontastic();
+          };
   }
 }
 fontastic();
-jQuery(".bare-btn.bare-btn__text").on("click", function () {
+$(".bare-btn.bare-btn__text").on("click", function () {
   setTimeout(fontastic, 10);
 });
 
