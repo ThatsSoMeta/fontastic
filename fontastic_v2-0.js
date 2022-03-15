@@ -530,8 +530,8 @@ stylesheetShroud.style.left = "0";
 stylesheetShroud.style.width = "100vw";
 stylesheetShroud.style.height = "100vh";
 stylesheetShroud.style.zIndex = "9999999";
-// stylesheetShroud.style.backgroundColor = "rgba(0,0,0,.7)";
-stylesheetShroud.style.background = "radial-gradient(rgb(0,0,0) 35%, rgba(0,0,0,.7) 75%)";
+stylesheetShroud.style.backgroundColor = "rgba(0,0,0,.8)";
+// stylesheetShroud.style.background = "radial-gradient(rgb(0,0,0) 35%, rgba(0,0,0,.7) 75%)";
 
 stylesheetDiv.className = "stylesheet_helper_container";
 stylesheetDiv.style.width = "600px";
@@ -579,7 +579,7 @@ runningNoticeDiv.style.display = "flex";
 runningNoticeDiv.style.alignItems = "center";
 runningNoticeDiv.style.padding = "3px 8px";
 runningNoticeDiv.style.cursor = "pointer";
-runningNoticeDiv.style.borderRadius = "5px 0 0 0";
+// runningNoticeDiv.style.borderRadius = "5px 0 0 0";
 
 logoImg.src = fontasticLogoWhite;
 logoImg.className = "fontastic_logo";
@@ -662,15 +662,15 @@ function fontastic() {
   var stylesheetInput;
 
   stylesheetSubmitBtn.onclick = function () {
-    // var textElement = jQuery("#stylesheet_helper_textarea"),
-    //   textIsValid = textElement.val().includes("@font-face {");
-    // console.log("textIsValid? ", textIsValid);
-    lastStep = fontList.length;
+    var textElement = jQuery("#stylesheet_helper_textarea"),
+    textIsValid = textElement.val().includes("@font-face {");
+    console.log("textIsValid? ", textIsValid);
     stylesheetInput = stylesheetTextElement.value;
-    if (lastStep > 0) {
+    stylesheetParsedFonts = getFonts(stylesheetInput);
+    fontList = stylesheetParsedFonts;
+    if (fontList.length > 0) {
+      lastStep = fontList.length;
       stylesheetIterationActive = true;
-      stylesheetParsedFonts = getFonts(stylesheetInput);
-      fontList = stylesheetParsedFonts;
       console.log("I have saved your items, friend: ", fontList);
       counterText.innerText = `Stylesheet iteration active: ${
         currentStep + 1
