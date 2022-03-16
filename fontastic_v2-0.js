@@ -202,7 +202,7 @@ function extractSourceURL(src = "") {
     ? (format = "woff")
     : src.includes("ttf") || src.includes("truetype")
     ? (format = "ttf")
-    : src.includes("otf")
+    : src.includes("otf") || src.includes("opentype")
     ? (format = "otf")
     : src.includes("eot") || src.includes("embedded-opentype")
     ? (format = "eot")
@@ -211,7 +211,7 @@ function extractSourceURL(src = "") {
 
   // console.log("Format in extractSourceURL(): ", format);
   var sourceURLRegex = new RegExp(
-      String.raw`url\(['"]?([\w\d\s:\/\-.&%#$_=]*)['"]?\)(\s*format\(['"]?[\s\w-]+['"]?\))?`,
+      String.raw`url\(['"]?([\w\d\s:\/\-.&%#$_=?]*)['"]?\)(\s*format\(['"]?[\s\w-]+['"]?\))?`,
       "gi"
     ),
     prefix = `data:application/x-font-${format};base64,`;
@@ -363,6 +363,15 @@ async function base64Converter(url = "") {
   }
 }
 
+function copyToClipboard() {
+  var $stylesArray = jQuery("style"),
+    text = "";
+  $stylesArray.each((i,e) => {
+    text += e.innerHTML
+  })
+  window.navigator.clipboard.writeText(text);
+}
+
 function showFinale(image = ohHiMarch) {
   if (!$(".fontastic_finale").length) {
     var finaleContainer = document.createElement("div"),
@@ -433,6 +442,7 @@ var weightError = document.createElement("p"),
   stylesheetCancelBtn = document.createElement("button"),
   skipFontBtn = document.createElement("button"),
   base64Btn = document.createElement("button"),
+  copyBtn = document.createElement("button"),
   stylesheetTextElement = document.createElement("textarea"),
   stylesheetTextElementLabel = document.createElement("label"),
   logoImg = document.createElement("img"),
@@ -445,6 +455,7 @@ var weightError = document.createElement("p"),
     stylesheetHelperBtn,
     stylesheetSubmitBtn,
     base64Btn,
+    copyBtn
   ],
   fontasticErrors = [stackError, weightError, sourceError, base64Error];
 
@@ -478,6 +489,7 @@ for (var button of fontasticButtons) {
 }
 
 stylesheetButtonsDiv.className = "fontastic_button_div";
+// stylesheetButtonsDiv.append(copyBtn);
 
 stylesheetSubmitBtn.className = "fontastic_stylesheet_submit_button";
 stylesheetSubmitBtn.innerText = "Let's give it a go!";
@@ -497,6 +509,13 @@ base64Btn.className = "fontastic_b64_button";
 base64Btn.innerText = "Get Base64";
 base64Btn.style.backgroundColor = wkndGreen;
 base64Btn.style.padding = "0 15px";
+
+copyBtn.style.backgroundColor = black;
+copyBtn.classList.add(["fontastic", "copyTestButton"]);
+copyBtn.innerText = "Copy Stylesheets";
+copyBtn.onclick = function () {
+  copyToClipboard()
+}
 
 stylesheetAbortBtn.className = "stylesheet_abort_button";
 stylesheetAbortBtn.innerText = "Clear stylesheet";
@@ -615,7 +634,7 @@ function fontastic() {
     }
     if (stylesheetIterationActive) {
       stylesheetButtonsDiv.innerHTML = "";
-      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
+      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn, copyBtn);
       counterText.innerText = `Stylesheet active. Font ${
         currentStep + 1
       } of ${lastStep}`;
@@ -626,7 +645,7 @@ function fontastic() {
       }
     } else {
       stylesheetButtonsDiv.innerHTML = "";
-      stylesheetButtonsDiv.append(stylesheetHelperBtn);
+      stylesheetButtonsDiv.append(copyBtn, stylesheetHelperBtn);
       counterText.innerText = "Stylesheet not active";
       counterText.style.color = wkndDarkBlue;
     }
