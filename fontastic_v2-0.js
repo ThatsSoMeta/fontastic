@@ -22,7 +22,8 @@ var fontList = [],
   ohHiMarch = "https://pbs.twimg.com/media/D0lACr6VsAEj8iV.png",
   fontasticLogoBlack = "https://i.ibb.co/564nZpv/Fontastic-logo-black.png",
   fontasticLogoBlue = "https://i.ibb.co/Dt9sgBV/fontastic-logo-blue.png",
-  fontasticLogoWhite = "https://i.ibb.co/5GKQ48R/Fontastic-logo-white.png";
+  fontasticLogoWhite = "https://i.ibb.co/5GKQ48R/Fontastic-logo-white.png",
+  urlRegex = /http[s]*:\/{2}[\w\d]+[.\w\d]+[.\w\d]*[\/\w\d.]*/gi;
 
 if (!String.prototype.includes) {
   String.prototype.includes = function (search, start) {
@@ -336,8 +337,9 @@ function stopIteration() {
 /* <3 Huge help from Triona, Nyssa, and https://pqina.nl/blog/convert-a-file-to-a-base64-string-with-javascript/ */
 async function base64Converter(url = "") {
   // console.log("Running base64Converter...");
-  if (!url) {
-    console.log("No URL found in base64Converter.");
+  if (!url || !url.match(urlRegex)) {
+    console.log("No valid URL found in base64Converter.");
+    sourceError.innerText = "This is not a valid URL";
   } else {
     // console.log("URL:", url);
     await fetch(url)
@@ -356,20 +358,12 @@ async function base64Converter(url = "") {
       .catch((error) => {
         console.error("Error:", error);
         base64Error.innerText =
-          "Looks like this URL isn't working. Please try a different URL or skip this font.";
+        "Looks like this URL isn't working. Please try a different URL or skip this font.";
         base64Btn.disabled = true;
         base64Btn.style.opacity = ".5";
+        $("textarea:last()").val(prefix);
       });
   }
-}
-
-function copyToClipboard() {
-  var $stylesArray = jQuery("style"),
-    text = "";
-  $stylesArray.each((i,e) => {
-    text += e.innerHTML
-  })
-  window.navigator.clipboard.writeText(text);
 }
 
 function showFinale(image = ohHiMarch) {
@@ -442,7 +436,6 @@ var weightError = document.createElement("p"),
   stylesheetCancelBtn = document.createElement("button"),
   skipFontBtn = document.createElement("button"),
   base64Btn = document.createElement("button"),
-  copyBtn = document.createElement("button"),
   stylesheetTextElement = document.createElement("textarea"),
   stylesheetTextElementLabel = document.createElement("label"),
   logoImg = document.createElement("img"),
@@ -455,7 +448,6 @@ var weightError = document.createElement("p"),
     stylesheetHelperBtn,
     stylesheetSubmitBtn,
     base64Btn,
-    copyBtn
   ],
   fontasticErrors = [stackError, weightError, sourceError, base64Error];
 
@@ -489,7 +481,6 @@ for (var button of fontasticButtons) {
 }
 
 stylesheetButtonsDiv.className = "fontastic_button_div";
-// stylesheetButtonsDiv.append(copyBtn);
 
 stylesheetSubmitBtn.className = "fontastic_stylesheet_submit_button";
 stylesheetSubmitBtn.innerText = "Let's give it a go!";
@@ -509,13 +500,6 @@ base64Btn.className = "fontastic_b64_button";
 base64Btn.innerText = "Get Base64";
 base64Btn.style.backgroundColor = wkndGreen;
 base64Btn.style.padding = "0 15px";
-
-copyBtn.style.backgroundColor = black;
-copyBtn.classList.add(["fontastic", "copyTestButton"]);
-copyBtn.innerText = "Copy Stylesheets";
-copyBtn.onclick = function () {
-  copyToClipboard()
-}
 
 stylesheetAbortBtn.className = "stylesheet_abort_button";
 stylesheetAbortBtn.innerText = "Clear stylesheet";
@@ -634,7 +618,7 @@ function fontastic() {
     }
     if (stylesheetIterationActive) {
       stylesheetButtonsDiv.innerHTML = "";
-      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn, copyBtn);
+      stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
       counterText.innerText = `Stylesheet active. Font ${
         currentStep + 1
       } of ${lastStep}`;
@@ -645,7 +629,7 @@ function fontastic() {
       }
     } else {
       stylesheetButtonsDiv.innerHTML = "";
-      stylesheetButtonsDiv.append(copyBtn, stylesheetHelperBtn);
+      stylesheetButtonsDiv.append(stylesheetHelperBtn);
       counterText.innerText = "Stylesheet not active";
       counterText.style.color = wkndDarkBlue;
     }
@@ -700,20 +684,20 @@ function fontastic() {
         `Next font (${currentStep + 1} of ${lastStep})`
       );
       $fontFaceTextField.val(fontList[currentStep].declaration);
-      $fontFaceTextField.trigger("input");
       stylesheetTextElement.value = "";
       if ($(".stylesheet_helper_button").length) {
         $(".stylesheet_helper_button").remove();
         stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
         if (!$(".fontastic_button_div").length) {
           $fontModalContainer
-            .children("[id*='ember']")
-            .append(stylesheetButtonsDiv);
+          .children("[id*='ember']")
+          .append(stylesheetButtonsDiv);
         }
       }
     } else {
       stylesheetTextElement.value = "So, um... there were no fonts there. Do you wanna try that again maybe?";
     }
+    $fontFaceTextField.trigger("input");
   };
 
   stylesheetCancelBtn.onclick = function () {
@@ -731,8 +715,7 @@ function fontastic() {
       return;
     }
     var font = getFonts($(this).val())[0],
-      prefix = font.prefix,
-      urlRegex = /http[s]*:\/{2}[\w\d]+[.\w\d]+[.\w\d]*[\/\w\d.]*/gi;
+      prefix = font.prefix;
 
     if (!font.declaredWeight || !font.declaredStyle) {
       $(this).val(font.declaration);
@@ -788,6 +771,7 @@ function fontastic() {
           sourceInput.trigger("input");
           if (!$(".source_error_text").length) {
             $(this).append(sourceError);
+            console.log(sourceInput, $(".source_error_text"));
           }
           base64Btn.onclick = function () {
             base64Converter(sourceInput.val());
@@ -796,17 +780,19 @@ function fontastic() {
           base64Btn.style.opacity = "1";
           $(this)
             .children("input")
-            .on("input", function (e) {
+            .on("input change", function (e) {
               var format;
-              base64Error.innerText = "";
               if (!!e.target.value.match(urlRegex)) {
+                console.log("This matches the URL Regex: ", e.target.value.match(urlRegex));
                 sourceError.innerText = "";
                 updatedURL = e.target.value;
                 font.updatedURL = e.target.value;
                 currentSource = e.target.value;
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = "1";
+                console.log("This is a nice URL you've got here: ", e.target.value);
               } else {
+                console.log("This does not match the URL Regex:", e.target.value.match(urlRegex));
                 sourceError.innerText = "Please enter a valid URL.";
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = ".5";
@@ -841,6 +827,7 @@ function fontastic() {
           $(this).children("label").text() == "FontGet base64"
         ) {
           if (!$(".base64_error_text").length) {
+            console.log("No base64 error text. Adding now...");
             $(this).append(base64Error);
           }
           if (!$(".fontastic_b64_button").length) {
