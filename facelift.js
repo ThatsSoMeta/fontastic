@@ -15,8 +15,11 @@ if (document.getElementById("facelift_button")) {
   copyBtn.style.top = "50px";
   copyBtn.style.right = "50px";
   copyBtn.style.zIndex = "2147473647";
+  copyBtn.onclick = compareResults;
   document.body.append(copyBtn);
 }
+
+let resultsOfDocument;
 
 if (!String.prototype.includes) {
   String.prototype.includes = function (search, start) {
@@ -31,7 +34,7 @@ if (!String.prototype.includes) {
   };
 }
 
-function thisDoesntDoMuchYet() {
+async function getDocumentFonts() {
   let fonts = [],
     fontString = "";
 
@@ -42,33 +45,40 @@ function thisDoesntDoMuchYet() {
       // have finished loading can go here.
       document.fonts.forEach(async (font) => {
         const fontPromise = await font.load();
-        console.log("fontPromise after loading: ", fontPromise);
+        fonts.push(fontPromise);
+        // console.log("fontPromise after loading: ", fontPromise);
       });
     })
     .then(() => {
-      console.log("Fonts: ", fonts);
+      //   console.log("Fonts: ", fonts);
+      resultsOfDocument = fonts;
+      return fonts;
     })
     .catch((error) => {
-      console.log(error);
+      console.log("An error occurred in thisDoesntDoMuchYet(): ", error);
     });
 }
 
-function findLinksInHead() {
-    let allLinks = document.getElementsByTagName("link"),
-        stylesheets = [],
-        fonts = [];
-    for (let link of allLinks) {
-        if (link.getAttribute("rel") === "stylesheet") {
-            stylesheets.push(link)
-        }
-        if (link.getAttribute("as") && link.getAttribute("as") === "font") {
-            fonts.push(link)
-        }
+function getLinkFonts() {
+  let allLinks = document.getElementsByTagName("link"),
+    stylesheets = [],
+    fonts = [];
+  for (let link of allLinks) {
+    if (link.getAttribute("rel") === "stylesheet") {
+      stylesheets.push(link);
     }
-    return {
-        stylesheets,
-        fonts
+    if (link.getAttribute("as") && link.getAttribute("as") === "font") {
+      fonts.push(link);
     }
+  }
+  return {
+    stylesheets,
+    fonts,
+  };
 }
 
-console.log(findLinksInHead());
+async function compareResults() {
+  let headResults = getLinkFonts(),
+    documentResults = await getDocumentFonts();
+  return {headResults,documentResults}
+}

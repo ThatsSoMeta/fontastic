@@ -75,7 +75,8 @@ function findLatinTags(fonts = "") {
   if (!fonts) {
     return [];
   }
-  var languagesRegex = /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
+  var languagesRegex =
+      /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
     extractedContent = fonts.matchAll(languagesRegex),
     allFonts = [];
   for (var result of extractedContent) {
@@ -358,7 +359,7 @@ async function base64Converter(url = "") {
       .catch((error) => {
         console.error("Error:", error);
         base64Error.innerText =
-        "Looks like this URL isn't working. Please try a different URL or skip this font.";
+          "Looks like this URL isn't working. Please try a different URL or skip this font.";
         base64Btn.disabled = true;
         base64Btn.style.opacity = ".5";
         $("textarea:last()").val(prefix);
@@ -666,7 +667,7 @@ function fontastic() {
 
   stylesheetSubmitBtn.onclick = function () {
     var textElement = jQuery("#stylesheet_helper_textarea"),
-    textIsValid = textElement.val().includes("@font-face {");
+      textIsValid = textElement.val().includes("@font-face {");
     console.log("textIsValid? ", textIsValid);
     stylesheetInput = stylesheetTextElement.value;
     stylesheetParsedFonts = getFonts(stylesheetInput);
@@ -690,12 +691,13 @@ function fontastic() {
         stylesheetButtonsDiv.append(stylesheetAbortBtn, skipFontBtn);
         if (!$(".fontastic_button_div").length) {
           $fontModalContainer
-          .children("[id*='ember']")
-          .append(stylesheetButtonsDiv);
+            .children("[id*='ember']")
+            .append(stylesheetButtonsDiv);
         }
       }
     } else {
-      stylesheetTextElement.value = "So, um... there were no fonts there. Do you wanna try that again maybe?";
+      stylesheetTextElement.value =
+        "So, um... there were no fonts there. Do you wanna try that again maybe?";
     }
     $fontFaceTextField.trigger("input");
   };
@@ -716,6 +718,8 @@ function fontastic() {
     }
     var font = getFonts($(this).val())[0],
       prefix = font.prefix;
+
+    $("textarea:last()").val(prefix);
 
     if (!font.declaredWeight || !font.declaredStyle) {
       $(this).val(font.declaration);
@@ -783,16 +787,25 @@ function fontastic() {
             .on("input change", function (e) {
               var format;
               if (!!e.target.value.match(urlRegex)) {
-                console.log("This matches the URL Regex: ", e.target.value.match(urlRegex));
+                console.log(
+                  "This matches the URL Regex: ",
+                  e.target.value.match(urlRegex)
+                );
                 sourceError.innerText = "";
                 updatedURL = e.target.value;
                 font.updatedURL = e.target.value;
                 currentSource = e.target.value;
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = "1";
-                console.log("This is a nice URL you've got here: ", e.target.value);
+                console.log(
+                  "This is a nice URL you've got here: ",
+                  e.target.value
+                );
               } else {
-                console.log("This does not match the URL Regex:", e.target.value.match(urlRegex));
+                console.log(
+                  "This does not match the URL Regex:",
+                  e.target.value.match(urlRegex)
+                );
                 sourceError.innerText = "Please enter a valid URL.";
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = ".5";
@@ -820,6 +833,7 @@ function fontastic() {
                 sourceError.innerText = "";
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = "1";
+                $("textarea:last()").val(prefix);
               }
             });
         } else if (
@@ -855,10 +869,10 @@ function fontastic() {
     runningNoticeDiv.append(logoImg);
     runningNoticeDiv.append(noticeSpan);
     $("body").append(runningNoticeDiv);
-          runningNoticeDiv.onclick = function () {
-            showFinale();
-            fontastic();
-          };
+    runningNoticeDiv.onclick = function () {
+      showFinale();
+      fontastic();
+    };
   }
 }
 fontastic();
