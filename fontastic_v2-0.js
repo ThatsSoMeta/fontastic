@@ -657,7 +657,7 @@ function fontastic() {
       );
     } else {
       if (stylesheetIterationActive) {
-        showFinale(itWorked);
+        // showFinale(itWorked);
       }
       stopIteration();
     }
@@ -870,7 +870,7 @@ function fontastic() {
     runningNoticeDiv.append(noticeSpan);
     $("body").append(runningNoticeDiv);
     runningNoticeDiv.onclick = function () {
-      showFinale();
+      // showFinale();
       fontastic();
     };
   }

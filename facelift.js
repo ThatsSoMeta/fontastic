@@ -44,13 +44,18 @@ async function getDocumentFonts() {
       // Any operation that needs to be done only after all the fonts
       // have finished loading can go here.
       document.fonts.forEach(async (font) => {
-        const fontPromise = await font.load();
-        fonts.push(fontPromise);
-        // console.log("fontPromise after loading: ", fontPromise);
+        const fontPromise = await font.loaded;
+        // fonts.push(font);
+        console.log("fontPromise after loading: ", fontPromise);
+        // console.log("font after loading: ", font);
+        // font.loaded.then((res) => {
+        //     console.log("res of font: ", res);
+        //     res.loaded.then((result) => { console.log("result following that: ", result) })
+        // });
       });
     })
     .then(() => {
-      //   console.log("Fonts: ", fonts);
+    //   console.log("Fonts: ", fonts);
       resultsOfDocument = fonts;
       return fonts;
     })
@@ -78,7 +83,10 @@ function getLinkFonts() {
 }
 
 async function compareResults() {
-  let headResults = getLinkFonts(),
-    documentResults = await getDocumentFonts();
-  return {headResults,documentResults}
+  let headResults = getLinkFonts();
+  getDocumentFonts().then((result) => {
+    let documentResults = result;
+    console.log("documentResults in compareResults(): ", result);
+    return { headResults, documentResults };
+  });
 }
