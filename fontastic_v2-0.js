@@ -46,7 +46,7 @@ function getFonts(allFonts = "") {
     throw Error("No font face detected in getFonts().");
   } else {
     // allFonts = allFonts.filter((n) => !!n && n.includes("font-family"));
-    console.log("allFonts in getFonts(): ", allFonts);
+    // console.log("allFonts in getFonts(): ", allFonts);
     // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
     for (var font of allFonts) {
       var fontObject = extractFont(font);
@@ -116,11 +116,6 @@ function extractFont(fontFace = "") {
     declarationStart = declaration.slice(0, -2).trim(),
     declarationEnd = declaration.slice(-1);
 
-  // console.log(
-  //   "declaration inside extractFont() before adding style/weight: ",
-  //   declaration
-  // );
-
   if (simplifiedFont.match(weightRegex)) {
     weightExtract = weightRegex.exec(simplifiedFont);
     weight = parseInt(weightExtract[1])
@@ -168,8 +163,6 @@ function extractFont(fontFace = "") {
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
-    var test = simplifiedFont.match(sourceRegex).join(" ");
-    console.log({test});
     source = determineSrc(simplifiedFont.match(sourceRegex).join(" "));
     declaredURL = source.url;
     url = source.url;
@@ -203,7 +196,6 @@ function determineSrc(src = "") {
 
 function extractSourceURL(src = "") {
   var format;
-  console.log("src in extractSourceURL(): ", src);
 
   src.includes("woff2")
     ? (format = "woff2")
@@ -216,21 +208,30 @@ function extractSourceURL(src = "") {
     : src.includes("eot") || src.includes("embedded-opentype")
     ? (format = "eot")
     : (format = "unknown");
+    console.log({format});
   /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
-  console.log("Format in extractSourceURL(): ", format);
   var sourceURLRegex = new RegExp(
       String.raw`url\("?'?([^()'"]*)"?'?\)\s*format\([^()]*${format}[^()]*\)`,
       "gi"
     ),
+    sourceURLRegex2 = new RegExp(
+      String.raw`url\("?'?([^()'"]*)"?'?\)(\s*format\([^()]*${format}[^()]*\))?`,
+      "gi"
+    ),
     prefix = `data:application/x-font-${format};base64,`,
-    sourceURLRegex2 = /url\("?'?([^()'"]*)"?'?\)\s*format\([^()]*woff2[^()]*\)/gi;
-  var srcMatchList = sourceURLRegex.exec(src);
-  // var srcMatchList2 = sourceURLRegex2.exec(src);
-  console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
-  // console.log("scrMatchList2 in extractSourceURL(): ", srcMatchList2);
+    srcMatchList = sourceURLRegex.exec(src),
+    srcMatchList2 = sourceURLRegex2.exec(src),
+    srcURL;
+    if (srcMatchList && srcMatchList[1]) {
+      console.log("Using primary source match list:", srcMatchList)
+      srcURL = srcMatchList[1]
+    } else if (srcMatchList2 && srcMatchList2[1]) {
+      console.log("Using srcMatchList2:", srcMatchList2);
+      srcURL = srcMatchList2[1]
+    }
   return {
-    url: srcMatchList[1],
+    url: srcURL,
     prefix: prefix,
   };
 }
@@ -775,7 +776,6 @@ function fontastic() {
             .children("input")
             .on("input", function (e) {
               stackError.innerText = "";
-              // $stackInput.css("border", "");
               if (!e.target.value.endsWith("serif") && !e.target.value.endsWith("!important")) {
                 stackError.innerText = "Please use a valid font stack.";
                 $stackInput.css("border", "2px solid red");
