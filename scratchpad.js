@@ -36,3 +36,15 @@ var bloomingdalesProblemFonts = `
 `
 
 var testArray = [1, 2, 3];
+
+var paulTest = `@font-face {
+    font-family: ‘futwora_proregular’;
+    src: url(“FutworaProWDW-Regular.eot”);
+    /* IE9 Compat Modes */
+    src: url(“FutworaProWDW-Regular.woff2") format(“woff2”), url(“FutworaProWDW-Regular.woff”) format(“woff”);
+    font-weight: normal;
+    font-style: normal;
+    font-display: auto;
+    font-display: swap; }`;
+
+console.log(paulTest.match(/src:\s*[^;]*/ig).join(" "));

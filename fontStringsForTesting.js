@@ -75,8 +75,7 @@ let weirdExampleFonts = `
     `;
 var singleFont = `@font-face {
         font-family: "futwora_extra-bold";
-        src: url("FutworaProWDW-Regular.eot");
-        /* IE9 Compat Modes - THIS IS FROM HELLOSEEN.COM */
+        src: url("FutworaProWDW-Regular.eot") format ("embedded-opentype");
         src: url("https://cdn.shopify.com/s/files/1/0016/5144/1717/t/119/assets/FutworaProWDW-Regular.woff2") format("woff2"),
         url("FutworaProWDW-Regular.woff") format("woff");
         font-weight: normal;
@@ -759,5 +758,98 @@ var bloomingdalesExamples = `@font-face {
   font-display: swap;
   src: local("Avenir Heavy"),local("Avenir LT W01 85 Heavy"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/f61bf0f6-c193-4100-b940-12a1a01dcee5.eot#iefix) format("eot"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/7147ec3a-8ff8-4ec9-8c5c-bd1571dc6ae6.woff) format("woff"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/d1dc54b2-878d-4693-8d6e-b442e99fef68.ttf) format("truetype"),url(https://assets.bloomingdalesassets.com/styles/common/fonts/avenir/731dd4d3-64da-427d-ba61-01575b3cf3f7.svg#731dd4d3-64da-427d-ba61-01575b3cf3f7) format("svg");
   font-weight: 700
-}`
-module.exports = {'language': withLanguageTags}
+}`;
+
+paulsProblemFonts = `
+@font-face {
+    font-family: "din-2014";
+    src: url("https://use.typekit.net/af/cb6232/00000000000000003b9b0ad8/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff2"),url("https://use.typekit.net/af/cb6232/00000000000000003b9b0ad8/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff"),url("https://use.typekit.net/af/cb6232/00000000000000003b9b0ad8/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("opentype");
+    font-style: normal;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "din-2014";
+    src: url("https://use.typekit.net/af/abc1c3/00000000000000003b9b0ac9/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n6&v=3") format("woff2"),url("https://use.typekit.net/af/abc1c3/00000000000000003b9b0ac9/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n6&v=3") format("woff"),url("https://use.typekit.net/af/abc1c3/00000000000000003b9b0ac9/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n6&v=3") format("opentype");
+    font-style: normal;
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "din-2014";
+    src: url("https://use.typekit.net/af/19a2f0/00000000000000003b9b0ac7/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"),url("https://use.typekit.net/af/19a2f0/00000000000000003b9b0ac7/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"),url("https://use.typekit.net/af/19a2f0/00000000000000003b9b0ac7/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+    font-style: normal;
+    font-weight: 700;
+}
+
+`
+
+var buxomCosmetics = `
+@font-face {
+  font-family: "Avenir-Book";
+  src: url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Book.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw06f405a3/fonts/Avenir-Book-all.woff2")
+      format("woff2"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw699a1942/fonts/Avenir-Book.woff")
+      format("woff"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw92526dbe/fonts/Avenir-Book.ttf")
+      format("truetype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Book.svg#webfont")
+      format("svg");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir-Medium";
+  src: url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Medium.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw05892f9a/fonts/Avenir-Medium-all.woff2")
+      format("woff2"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw49d30556/fonts/Avenir-Medium.woff")
+      format("woff"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dwba44a40b/fonts/Avenir-Medium.ttf")
+      format("truetype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Medium.svg#webfont")
+      format("svg");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir-Heavy";
+  src: url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Heavy.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw7306af8f/fonts/Avenir-Heavy.woff2")
+      format("woff2"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw71c7e154/fonts/Avenir-Heavy.woff")
+      format("woff"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dwb1805ce0/fonts/Avenir-Heavy.ttf")
+      format("truetype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Heavy.svg#webfont")
+      format("svg");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Avenir-Black";
+  src: url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Black.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dwd68d63fd/fonts/Avenir-Black-all.woff2")
+      format("woff2"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw0a60bdc2/fonts/Avenir-Black.woff")
+      format("woff"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/default/dw32b297e8/fonts/Avenir-Black.ttf")
+      format("truetype"),
+    url("https://www.buxomcosmetics.com/on/demandware.static/Sites-BUXOM_US-Site/-/en_US/v1648193236896/fonts/Avenir-Black.svg#webfont")
+      format("svg");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+}
+`

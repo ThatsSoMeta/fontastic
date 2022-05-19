@@ -45,8 +45,8 @@ function getFonts(allFonts = "") {
   if (!allFonts) {
     throw Error("No font face detected in getFonts().");
   } else {
-    allFonts = allFonts.filter((n) => !!n && n.includes("font-family"));
-    // console.log("allFonts in getFonts(): ", allFonts);
+    // allFonts = allFonts.filter((n) => !!n && n.includes("font-family"));
+    console.log("allFonts in getFonts(): ", allFonts);
     // FOR EACH FONT, EXTRACT THE INFO FROM IT. IF THE STYLE IS NOT "NORMAL", ONLY ADD IF IT HAS A UNIQUE FONT-FAMILY
     for (var font of allFonts) {
       var fontObject = extractFont(font);
@@ -76,15 +76,19 @@ function findLatinTags(fonts = "") {
     return [];
   }
   var languagesRegex =
-      /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({[\w\d\s:'";\-\/.+,()%_=?&#]+})/gi,
+      /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({([^}]+)})/gi,
     extractedContent = fonts.matchAll(languagesRegex),
     allFonts = [];
+    console.log("findLatinTags() extractedContent:", extractedContent);
   for (var result of extractedContent) {
+    console.log({result});
     if (!result[1]) {
       // If there is no language tag, add the font
+      console.log("No language tag found");
       allFonts.push(result[2]);
     } else if (result[1].includes("latin") && !result[1].includes("-ext")) {
       // If the language tag is latin and not latin-ext, add the font
+      console.log("Language tag found");
       allFonts.push(result[2]);
     }
   }
@@ -100,7 +104,7 @@ function extractFont(fontFace = "") {
     family = familyRegex.exec(simplifiedFont)[1],
     styleRegex = /style:\s*([^;]+);/gi,
     weightRegex = /weight:\s*([^;]+)/gi,
-    sourceRegex = /src:\s*([\w\d\s:'\-\/.+,()%_"=?&#]+)/gi,
+    sourceRegex = /src:\s*[^;]+/gi,
     source = "",
     declaredStyle,
     style,
@@ -164,7 +168,9 @@ function extractFont(fontFace = "") {
   if (!simplifiedFont.match(sourceRegex).length) {
     source = "No source detected. Please manually enter...";
   } else {
-    source = determineSrc(simplifiedFont.match(sourceRegex).join());
+    var test = simplifiedFont.match(sourceRegex).join(" ");
+    console.log({test});
+    source = determineSrc(simplifiedFont.match(sourceRegex).join(" "));
     declaredURL = source.url;
     url = source.url;
     prefix = source.prefix;
@@ -185,6 +191,7 @@ function extractFont(fontFace = "") {
 }
 
 function determineSrc(src = "") {
+  console.log({src});
   var result = "";
   if (!src.length) {
     return "No source detected! Please manually enter...";
@@ -196,7 +203,7 @@ function determineSrc(src = "") {
 
 function extractSourceURL(src = "") {
   var format;
-  // console.log("src in extractSourceURL(): ", src);
+  console.log("src in extractSourceURL(): ", src);
 
   src.includes("woff2")
     ? (format = "woff2")
@@ -211,14 +218,17 @@ function extractSourceURL(src = "") {
     : (format = "unknown");
   /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
-  // console.log("Format in extractSourceURL(): ", format);
+  console.log("Format in extractSourceURL(): ", format);
   var sourceURLRegex = new RegExp(
-      String.raw`url\(['"]?([\w\d\s:\/\-.&%#$_=?]*)['"]?\)(\s*format\(['"]?[\s\w-]+['"]?\))?`,
+      String.raw`url\("?'?([^()'"]*)"?'?\)\s*format\([^()]*${format}[^()]*\)`,
       "gi"
     ),
-    prefix = `data:application/x-font-${format};base64,`;
-  srcMatchList = sourceURLRegex.exec(src);
-  // console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
+    prefix = `data:application/x-font-${format};base64,`,
+    sourceURLRegex2 = /url\("?'?([^()'"]*)"?'?\)\s*format\([^()]*woff2[^()]*\)/gi;
+  var srcMatchList = sourceURLRegex.exec(src);
+  // var srcMatchList2 = sourceURLRegex2.exec(src);
+  console.log("scrMatchList in extractSourceURL(): ", srcMatchList);
+  // console.log("scrMatchList2 in extractSourceURL(): ", srcMatchList2);
   return {
     url: srcMatchList[1],
     prefix: prefix,
@@ -595,12 +605,14 @@ noticeSpan.style.fontWeight = "600";
 noticeSpan.style.fontSize = "10px";
 
 function fontastic() {
+  console.log("Running Fontastic");
   var $fontModalContainer = $(".bx-modal_container"),
     $fontModal = $(".bx-modal_container .mint-theme.ember-view"),
     $fontFaceTextField = $fontModal.find(
       ".font-input.ember-text-area:not('.input-wrap_input')"
     ),
-    updatedURL = "";
+    updatedURL = "",
+    $stackInput = $("label:contains('Stack')").siblings("input");
 
   if ($fontModalContainer.length) {
     $fontModalContainer.css("max-height", "99%");
@@ -713,6 +725,8 @@ function fontastic() {
     stackError.innerText = "";
     base64Error.innerText = "";
 
+    console.log("Font input received");
+
     if (!$(this).val()) {
       return;
     }
@@ -755,13 +769,18 @@ function fontastic() {
           }
           if ($(this).children("input").val().endsWith(",")) {
             stackError.innerText = "Please use a valid font stack.";
+            $stackInput.css("border","2px solid red");
           }
           $(this)
             .children("input")
             .on("input", function (e) {
               stackError.innerText = "";
-              if (!$(this).val().endsWith("serif")) {
+              // $stackInput.css("border", "");
+              if (!e.target.value.endsWith("serif") && !e.target.value.endsWith("!important")) {
                 stackError.innerText = "Please use a valid font stack.";
+                $stackInput.css("border", "2px solid red");
+              } else {
+                $stackInput.css("border", "");
               }
               if (fontList[currentStep]) {
                 fontList[currentStep].stack = e.target.value;
