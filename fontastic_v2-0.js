@@ -79,16 +79,16 @@ function findLatinTags(fonts = "") {
       /(\/\*\s*\w+-?\w*\s*\*\/\s*)?@font-face\s*({([^}]+)})/gi,
     extractedContent = fonts.matchAll(languagesRegex),
     allFonts = [];
-    console.log("findLatinTags() extractedContent:", extractedContent);
+    // console.log("findLatinTags() extractedContent:", extractedContent);
   for (var result of extractedContent) {
     console.log({result});
     if (!result[1]) {
       // If there is no language tag, add the font
-      console.log("No language tag found");
+      // console.log("No language tag found");
       allFonts.push(result[2]);
     } else if (result[1].includes("latin") && !result[1].includes("-ext")) {
       // If the language tag is latin and not latin-ext, add the font
-      console.log("Language tag found");
+      // console.log("Language tag found");
       allFonts.push(result[2]);
     }
   }
@@ -184,7 +184,7 @@ function extractFont(fontFace = "") {
 }
 
 function determineSrc(src = "") {
-  console.log({src});
+  // console.log({src});
   var result = "";
   if (!src.length) {
     return "No source detected! Please manually enter...";
@@ -208,7 +208,7 @@ function extractSourceURL(src = "") {
     : src.includes("eot") || src.includes("embedded-opentype")
     ? (format = "eot")
     : (format = "unknown");
-    console.log({format});
+    // console.log({format});
   /* REMOVED PERIOD FROM ABOVE CHECK BECAUSE SOME URLS DON'T HAVE THE FORMAT, BUT IT IS STILL AVAILABLE IN THE format() PORTION */
 
   var sourceURLRegex = new RegExp(
@@ -224,10 +224,10 @@ function extractSourceURL(src = "") {
     srcMatchList2 = sourceURLRegex2.exec(src),
     srcURL;
     if (srcMatchList && srcMatchList[1]) {
-      console.log("Using primary source match list:", srcMatchList)
+      // console.log("Using primary source match list:", srcMatchList);
       srcURL = srcMatchList[1]
     } else if (srcMatchList2 && srcMatchList2[1]) {
-      console.log("Using srcMatchList2:", srcMatchList2);
+      // console.log("Using srcMatchList2:", srcMatchList2);
       srcURL = srcMatchList2[1]
     }
   return {
@@ -681,7 +681,7 @@ function fontastic() {
   stylesheetSubmitBtn.onclick = function () {
     var textElement = jQuery("#stylesheet_helper_textarea"),
       textIsValid = textElement.val().includes("@font-face {");
-    console.log("textIsValid? ", textIsValid);
+    // console.log("textIsValid? ", textIsValid);
     stylesheetInput = stylesheetTextElement.value;
     stylesheetParsedFonts = getFonts(stylesheetInput);
     fontList = stylesheetParsedFonts;
@@ -726,7 +726,7 @@ function fontastic() {
     stackError.innerText = "";
     base64Error.innerText = "";
 
-    console.log("Font input received");
+    // console.log("Font input received");
 
     if (!$(this).val()) {
       return;
@@ -794,7 +794,7 @@ function fontastic() {
           sourceInput.trigger("input");
           if (!$(".source_error_text").length) {
             $(this).append(sourceError);
-            console.log(sourceInput, $(".source_error_text"));
+            // console.log(sourceInput, $(".source_error_text"));
           }
           base64Btn.onclick = function () {
             base64Converter(sourceInput.val());
@@ -806,25 +806,25 @@ function fontastic() {
             .on("input change", function (e) {
               var format;
               if (!!e.target.value.match(urlRegex)) {
-                console.log(
-                  "This matches the URL Regex: ",
-                  e.target.value.match(urlRegex)
-                );
+                // console.log(
+                //   "This matches the URL Regex: ",
+                //   e.target.value.match(urlRegex)
+                // );
                 sourceError.innerText = "";
                 updatedURL = e.target.value;
                 font.updatedURL = e.target.value;
                 currentSource = e.target.value;
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = "1";
-                console.log(
-                  "This is a nice URL you've got here: ",
-                  e.target.value
-                );
+                // console.log(
+                //   "This is a nice URL you've got here: ",
+                //   e.target.value
+                // );
               } else {
-                console.log(
-                  "This does not match the URL Regex:",
-                  e.target.value.match(urlRegex)
-                );
+                // console.log(
+                //   "This does not match the URL Regex:",
+                //   e.target.value.match(urlRegex)
+                // );
                 sourceError.innerText = "Please enter a valid URL.";
                 base64Btn.disabled = false;
                 base64Btn.style.opacity = ".5";
@@ -860,7 +860,7 @@ function fontastic() {
           $(this).children("label").text() == "FontGet base64"
         ) {
           if (!$(".base64_error_text").length) {
-            console.log("No base64 error text. Adding now...");
+            // console.log("No base64 error text. Adding now...");
             $(this).append(base64Error);
           }
           if (!$(".fontastic_b64_button").length) {
